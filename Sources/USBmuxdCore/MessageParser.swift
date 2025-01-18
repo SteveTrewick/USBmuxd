@@ -20,12 +20,19 @@ protocol MachineState {
 
 public class MuxMessageMachine {
   
+  
+  public enum MachineError : Error {
+    case shrug // no errors yet TODO: add errors
+  }
+  
   let HEADER_LENGTH = 16 // USBMuxHeader length
   
   var buffer  : Data          =  Data()
   var buffptr : Int           = 0
   var header  : USBMuxdHeader = USBMuxdHeader()
   var state   : MachineState!
+  
+  public var messageHandler : ((Result< [String: Any], MachineError>) -> Void)? = nil
   
   
   public init() {
@@ -130,7 +137,9 @@ class ReadPlist : MachineState {
     
     if let plist = try? PropertyListSerialization.propertyList(from: chunk, options: .mutableContainersAndLeaves, format: &xml) {
       if let dict = plist as? [String : Any] {
-        print(dict)
+        if let handler = machine.messageHandler {
+          handler ( .success(dict) )
+        }
       }
     }
     
