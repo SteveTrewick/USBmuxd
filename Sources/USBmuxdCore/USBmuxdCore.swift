@@ -2,9 +2,11 @@ import Foundation
 import USBMuxdHeader
 
 
-struct MessageBuilder {
+public struct MessageBuilder {
   
-  func build(from dict: [String : Any] ) -> Data? {
+  public init() {}
+  
+  public func build(from dict: [String : Any] ) -> Data? {
     // first create the PList so we know how long it is
     guard
       let pldata = try? PropertyListSerialization.data(fromPropertyList: dict, format: .xml, options: 0)
