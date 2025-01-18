@@ -10,15 +10,15 @@ import USBMuxdHeader
 
 protocol MachineState {
   func execute()
-  var  machine : StateMachine { get }
-  init (_ machine: StateMachine)
+  var  machine : MuxMessageMachine { get }
+  init (_ machine: MuxMessageMachine)
 }
 
 /*
  
 */
 
-class StateMachine {
+public class MuxMessageMachine {
   
   let HEADER_LENGTH = 16 // USBMuxHeader length
   
@@ -27,14 +27,9 @@ class StateMachine {
   var header  : USBMuxdHeader = USBMuxdHeader()
   var state   : MachineState!
   
-  /*
-    yeah, problem with using the init (to avoid lots of if let ... { ... }
-    is that you can't init the states outside of the machine, TBH this is not
-    a great pattern and I should have just used a var and eaten the if/let
-  */
   
-  init<T: MachineState> (state: T.Type) {
-    self.state = T(self)
+  public init() {
+    self.state = ReadHeader(self)
   }
   
   /*
@@ -49,7 +44,7 @@ class StateMachine {
     it or wait
   */
   
-  func process( data: Data ) {
+  public func process( data: Data ) {
     buffer += data
     state.execute()
   }
@@ -76,9 +71,9 @@ class StateMachine {
 
 class Reset : MachineState {
   
-  var machine: StateMachine
+  var machine: MuxMessageMachine
   
-  required init(_ machine: StateMachine) {
+  required init(_ machine: MuxMessageMachine) {
     self.machine = machine
   }
   
@@ -99,9 +94,9 @@ class Reset : MachineState {
 
 class ReadPlist : MachineState {
   
-  var machine: StateMachine
+  var machine: MuxMessageMachine
   
-  required init (_ machine: StateMachine ) {
+  required init (_ machine: MuxMessageMachine ) {
     self.machine = machine
   }
   
@@ -158,9 +153,9 @@ class ReadPlist : MachineState {
 
 class ReadHeader : MachineState {
   
-  var machine: StateMachine
+  var machine: MuxMessageMachine
   
-  required init(_ machine: StateMachine) {
+  required init(_ machine: MuxMessageMachine) {
     self.machine = machine
   }
   
