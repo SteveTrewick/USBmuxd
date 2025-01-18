@@ -5,7 +5,8 @@ import USBMuxdHeader
 /*
   So my switch/case got out of hand and this is after all a state machine thing,
   so I made it an explcit state machine, it kind of has some hidden wait states, TBH
-  but eh, w/e
+  but eh, w/e, it is robust to fragmentation of responses and multiple response per call,
+  so that's nice.
 */
 
 protocol MachineState {
@@ -14,9 +15,6 @@ protocol MachineState {
   init (_ machine: MuxMessageMachine)
 }
 
-/*
- 
-*/
 
 public class MuxMessageMachine {
   
