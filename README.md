@@ -7,7 +7,7 @@ on your system and things on your USB connected iPhone.
 usbmuxd lives at /var/run/usbmuxd as a Unix domain socket.
 
 usbmuxd messages are pretty simple, while things can get complex on the bus
-with all the lockdownd etc binary and SSL chat, the basic usbnuxd part is
+with all the lockdownd etc binary and SSL chat, the basic usbmuxd part is
 just a dictionary encoded as a PList in XML format.
 
 Older versions of usbmuxd used a binary format, but that's gone now, on macOS anyway,
