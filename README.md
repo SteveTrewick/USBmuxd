@@ -27,7 +27,9 @@ each message consists of a 16 byte header split into 4 UInt32 fields defined lik
 The following bytes contain an XML encoded PList.
 
 Some fun info on (some of) the format of the PList messages can be found at :
+
 https://jon-gabilondo-angulo-7635.medium.com/understanding-usbmux-and-the-ios-lockdown-service-7f2a1dfd07ae
+
 https://archive.is/uLAyw
 
 Many of the fields are optional but will help if you are tracing.
