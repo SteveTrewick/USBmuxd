@@ -57,7 +57,6 @@ public class MuxMessageMachine {
   
   func transition(to state: MachineState) {
     self.state = state
-    //print("transitioned to : \(state)")
   }
   
 
@@ -110,7 +109,7 @@ class ReadPlist : MachineState {
   */
   
   func execute() {
-    //print("executing \(self))")
+    
     
     /*
       retrieve the length of the PList data from the USBMuxHeader we just read
@@ -172,7 +171,6 @@ class ReadHeader : MachineState {
   
   func execute() {
     
-    //print("executing \(self))")
     
     /*
       if there is not enough data to read a full header, we simply exit, remaining in the
