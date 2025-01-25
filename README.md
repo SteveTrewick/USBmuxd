@@ -60,7 +60,7 @@ The message builder simply serializes a dict to an XML PList and smooshes it alo
 the appropriate header bytes.
 
 Since usbmuxd occasionaly fragments messages, at the very lest sending only a header, 
-or smooshes them all together is a single transmission I use a trivial state machine 
+or smooshes them all together in a single transmission I use a trivial state machine 
 to process the response. 
 
 ## Future
