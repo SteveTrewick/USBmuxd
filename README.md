@@ -73,6 +73,9 @@ for instance lockdownd lives on port 62708, 0xf27e but the number we need to pas
 
 See also the issues tab.
 
+Note there are no tagged releases yet, I don't think this is quite ready to be SPM'd into your projects
+just yet.
+
 ## Example
 
 OK, how do we use it? This example also uses [GCDSocket](https://github.com/SteveTrewick/GCDSocket) 
