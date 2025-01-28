@@ -39,7 +39,7 @@ public class PListStateMachine  {
   var state  : MachineState!
   var reader : DataHeaderReader
   
-  public var messageHandler : ((Result< [String: Any], MachineError>) -> Void)? = nil
+  public var messageHandler : ((Result < ( tag: UInt32, dict: [String: Any] ), MachineError > ) -> Void)? = nil
   
   
   public init ( reader: DataHeaderReader ) {
@@ -169,7 +169,7 @@ class ReadPlist : MachineState {
       return
     }
     
-    machine.messageHandler?( .success(dict) )
+    machine.messageHandler?( .success( (machine.header.tag, dict)) )
     machine.buffptr += machine.header.dataLength
     
     
