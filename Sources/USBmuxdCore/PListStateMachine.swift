@@ -11,60 +11,41 @@ import USBMuxdHeader
 
 protocol MachineState {
   func execute()
-  var  machine : StateMachine { get }
-  init ( _ machine: StateMachine)
+  var  machine : PListStateMachine { get }
+  init ( _ machine: PListStateMachine)
 }
 
-// TODO: Extract mux message machine to protocol
 
 public enum MachineError : Error {
-  case shrug // no errors yet TODO: add errors
-}
-
-protocol MachineHeader {
-  var length : UInt32 { get }
-  // ok, but we also need to extract tags for usbmuxd
-  // we'll just have to cast it, sort out later.
+  case xmlfail, dictfail
 }
 
 
-extension USBMuxdHeader : MachineHeader {
-  
+public struct HeaderInfo {
+  public let dataLength : Int
+  public let tag        : UInt32
 }
 
-protocol StateMachine {
-  
-  var buffer         : Data          { get set }
-  var buffptr        : Int           { get set }
-  var state          : MachineState! { get set }
-  var HEADER_LENGTH  : Int           { get     }
-  var header         : MachineHeader { get set }
-  
-  var messageHandler : ((Result< [String: Any], MachineError>) -> Void)? { get set }
-  
-  func transition ( to state: MachineState)
-  func process    ( data: Data )
-  func finished   () -> Bool
-  
-}
 
-public class MuxMessageMachine : StateMachine {
-  
-  
 
+
+public class PListStateMachine  {
   
-  let HEADER_LENGTH = 16 // USBMuxHeader length
+    
+  var buffer  : Data       =  Data()
+  var buffptr : Int        = 0
+  var header  : HeaderInfo = HeaderInfo(dataLength: 0, tag: 0)
   
-  var buffer  : Data          =  Data()
-  var buffptr : Int           = 0
-  var header  : MachineHeader = USBMuxdHeader()
-  var state   : MachineState!
+  var state  : MachineState!
+  var reader : DataHeaderReader
   
   public var messageHandler : ((Result< [String: Any], MachineError>) -> Void)? = nil
   
   
-  public init() {
-    self.state = ReadHeader(self)
+  public init ( reader: DataHeaderReader ) {
+    
+    self.reader = reader
+    self.state  = ReadHeader(self)
   }
   
   /*
@@ -72,14 +53,21 @@ public class MuxMessageMachine : StateMachine {
     it gets added to the buffer and then we execute the current state which will
     be either ReadHeader or ReadPlist.
    
-    If they are unable to complete their reads due to insiffucuent data, they will exit
+    If they are unable to complete their reads due to insuffucient data, they will exit
     without transitioning and wait for more data to arrive to finish their tasks
    
     when they are done they will transition to the next suitable state and either execute
     it or wait
+   
+    if we fail at decoding a PList, we transition to a fail state and just stop
+    doing anything because that's essentially an unrecoverable state. bummer.
   */
   
   public func process( data: Data ) {
+    
+    // if we have failed, do nothing. or, should we embrace the chaos?
+    if let _ = state as? Fail { return }
+    
     buffer += data
     state.execute()
   }
@@ -92,7 +80,7 @@ public class MuxMessageMachine : StateMachine {
 
   /*
     check to see if we have processed all the data in the buffer
-    called by the Read states to detrmine which state to transition to next
+    called by the Read states to determine which state to transition to next
   */
   func finished() -> Bool {
     buffptr >= buffer.count
@@ -101,13 +89,23 @@ public class MuxMessageMachine : StateMachine {
 }
 
 
+class Fail : MachineState {
+  func execute() { }
+  
+  var machine: PListStateMachine
+  
+  required init(_ machine: PListStateMachine) {
+    self.machine = machine
+  }
+  
+}
 
 
 class Reset : MachineState {
   
-  var machine: StateMachine
+  var machine: PListStateMachine
   
-  required init(_ machine: StateMachine) {
+  required init(_ machine: PListStateMachine) {
     self.machine = machine
   }
   
@@ -128,9 +126,9 @@ class Reset : MachineState {
 
 class ReadPlist : MachineState {
   
-  var machine: StateMachine
+  var machine: PListStateMachine
   
-  required init (_ machine: StateMachine ) {
+  required init (_ machine: PListStateMachine ) {
     self.machine = machine
   }
   
@@ -139,38 +137,40 @@ class ReadPlist : MachineState {
   */
   
   func execute() {
-    
-    
-    /*
-      retrieve the length of the PList data from the USBMuxHeader we just read
-    */
-    let datalen = Int(machine.header.length) - machine.HEADER_LENGTH
-    
+        
     /*
       if there is not enough data in the buffer yet, we stop and wait in this state
       until more data comes along and we get executed again
     */
-    guard (machine.buffer.count - machine.buffptr) >= datalen else { return }
+    guard (machine.buffer.count - machine.buffptr) >= machine.header.dataLength else { return }
       
     /*
       extract the relevant bytes from the buffer
     */
-    let chunk = machine.buffer[machine.buffptr..<(machine.buffptr + datalen)]
+    let chunk = machine.buffer[machine.buffptr..<(machine.buffptr + machine.header.dataLength)]
     
     /*
       I have no idea why this form of PLS requires us to pass a pointer, but it does <shrug>
     */
     var xml : PropertyListSerialization.PropertyListFormat = .xml
     
-    if let plist = try? PropertyListSerialization.propertyList(from: chunk, options: .mutableContainersAndLeaves, format: &xml) {
-      if let dict = plist as? [String : Any] {
-        if let handler = machine.messageHandler {
-          handler ( .success(dict) )
-        }
-      }
+    guard let plist = try? PropertyListSerialization.propertyList(from: chunk, options: .mutableContainersAndLeaves, format: &xml)
+    else {
+      machine.messageHandler?( .failure(.xmlfail) )
+      machine.transition     ( to: Fail(machine)  )
+      return
     }
     
-    machine.buffptr += datalen
+    // unlikely fail, but still
+    guard let dict = plist as? [String : Any]
+    else {
+      machine.messageHandler?( .failure(.dictfail) )
+      machine.transition     ( to: Fail(machine)   )
+      return
+    }
+    
+    machine.messageHandler?( .success(dict) )
+    machine.buffptr += machine.header.dataLength
     
     
     /*
@@ -189,47 +189,33 @@ class ReadPlist : MachineState {
 
 class ReadHeader : MachineState {
   
-  var machine: StateMachine
+  var machine: PListStateMachine
   
-  required init(_ machine: StateMachine) {
+  required init(_ machine: PListStateMachine) {
     self.machine = machine
   }
   
+  
+  
   /*
-    attempt to read a USBMuxHeader from the buffer
+    attempt to read a header from the buffer
   */
-  
-  
-  /*  MARK: the only actual difference between muxd and lockdownd is the header,
-      
-      so realistically, if we make this bit here work for both, we don't need a new
-      machine and we dont even reall need the protocol (not that protoocl anyway)
-      actually, if we create a wrapper class to pull the length we're nearly there,
-      we can't just manipulate the tyoe though as lockdownd is big endian and we need
-      to byte swap, plus in the case of usbmuxd we arguably need the tags (though
-      we can just zero them for ldd. Also we need to add an additional check on muxd
-      to make sure we are reading the right type of message (8) so we need to add an
-      error condition
-   
-   */
-  
   func execute() {
-    
     
     /*
       if there is not enough data to read a full header, we simply exit, remaining in the
       same state until more data is available (I have never seen this happen, TBH, but still)
     */
-    guard (machine.buffer.count - machine.buffptr) >= machine.HEADER_LENGTH else { return }
+    guard (machine.buffer.count - machine.buffptr) >= machine.reader.length else { return }
     
-    let headend = machine.buffptr + machine.HEADER_LENGTH
+    let headend = machine.buffptr + machine.reader.length
     
-    let header = machine.buffer[machine.buffptr..<headend].withUnsafeBytes { bytes in
-      bytes.load(as: USBMuxdHeader.self)
+    let headerInfo = machine.buffer[machine.buffptr..<headend].withUnsafeBytes { bytes in
+      machine.reader.load(from: bytes)
     }
     
-    machine.buffptr += 16
-    machine.header  = header //; print(header)
+    machine.buffptr    += machine.reader.length
+    machine.header  = headerInfo
   
     /*
       finished reading header, there will be a PList next,
