@@ -11,23 +11,53 @@ import USBMuxdHeader
 
 protocol MachineState {
   func execute()
-  var  machine : MuxMessageMachine { get }
-  init (_ machine: MuxMessageMachine)
+  var  machine : StateMachine { get }
+  init ( _ machine: StateMachine)
+}
+
+// TODO: Extract mux message machine to protocol
+
+public enum MachineError : Error {
+  case shrug // no errors yet TODO: add errors
+}
+
+protocol MachineHeader {
+  var length : UInt32 { get }
+  // ok, but we also need to extract tags for usbmuxd
+  // we'll just have to cast it, sort out later.
 }
 
 
-public class MuxMessageMachine {
+extension USBMuxdHeader : MachineHeader {
+  
+}
+
+protocol StateMachine {
+  
+  var buffer         : Data          { get set }
+  var buffptr        : Int           { get set }
+  var state          : MachineState! { get set }
+  var HEADER_LENGTH  : Int           { get     }
+  var header         : MachineHeader { get set }
+  
+  var messageHandler : ((Result< [String: Any], MachineError>) -> Void)? { get set }
+  
+  func transition ( to state: MachineState)
+  func process    ( data: Data )
+  func finished   () -> Bool
+  
+}
+
+public class MuxMessageMachine : StateMachine {
   
   
-  public enum MachineError : Error {
-    case shrug // no errors yet TODO: add errors
-  }
+
   
   let HEADER_LENGTH = 16 // USBMuxHeader length
   
   var buffer  : Data          =  Data()
   var buffptr : Int           = 0
-  var header  : USBMuxdHeader = USBMuxdHeader()
+  var header  : MachineHeader = USBMuxdHeader()
   var state   : MachineState!
   
   public var messageHandler : ((Result< [String: Any], MachineError>) -> Void)? = nil
@@ -75,9 +105,9 @@ public class MuxMessageMachine {
 
 class Reset : MachineState {
   
-  var machine: MuxMessageMachine
+  var machine: StateMachine
   
-  required init(_ machine: MuxMessageMachine) {
+  required init(_ machine: StateMachine) {
     self.machine = machine
   }
   
@@ -98,9 +128,9 @@ class Reset : MachineState {
 
 class ReadPlist : MachineState {
   
-  var machine: MuxMessageMachine
+  var machine: StateMachine
   
-  required init (_ machine: MuxMessageMachine ) {
+  required init (_ machine: StateMachine ) {
     self.machine = machine
   }
   
@@ -159,9 +189,9 @@ class ReadPlist : MachineState {
 
 class ReadHeader : MachineState {
   
-  var machine: MuxMessageMachine
+  var machine: StateMachine
   
-  required init(_ machine: MuxMessageMachine) {
+  required init(_ machine: StateMachine) {
     self.machine = machine
   }
   
