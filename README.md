@@ -44,9 +44,8 @@ which looks featureful and nice.
 If you're interested in maybe poking usbmuxd yourself to see what happens, keep an 
 eye on this repo as it develops.
 
-Not yet covered is talking to lockdownd on the phone, via which we can retrieve such things
-as the name of connected devices. lockdownd also uses a PList format but with a 4 byte header.
-I haven't written the parser yet but it is trivial and will be along soon.
+There is now a parser for lockdownd messages as well, but not yet a way to talk to it. 
+That will be added soon.
 
 More information will be added to this repo about message formats and the like as we go along.
 If you'd like to snoop on usbmuxd to see what it is doing, there are instructions to do that
@@ -104,8 +103,8 @@ let sox = GCDSocketConstructor()
 let socket  = sox.domainSocketClient(path: "/var/run/usbmuxd")
 let message = MessageBuilder()
 let hex     = HexDump()
-let machine = MuxMessageMachine()  // recieved messages are processed in a state machine
-                                   // to guard against fragmentation
+let machine = PListStateMachine(reader: USBMuxHeaderReader() )  // recieved messages are processed in a state machine
+                                                                // to guard against fragmentation
 
 
 socket.dataHandler = { result in
@@ -128,8 +127,8 @@ socket.dataHandler = { result in
 */
 machine.messageHandler = { result in
   switch result {
-    case .failure(let fail) : print( "fail \(fail)" )
-    case .success(let dict) : print(dict as CFDictionary) // CFDict has better debug format <shrug>
+    case .failure(let fail)         : print( "fail \(fail)" )
+    case .success(let (tag, dict) ) : print(tag, dict as CFDictionary) // CFDict has better debug format <shrug>
   }
 }
 
@@ -153,10 +152,13 @@ if let list = message.build(from:  ["MessageType" : "ListDevices"], tag: 0xdeadb
   socket.write(data: list)
 }
 
-
+if let listen = message.build(from:  ["MessageType" : "Listen"], tag: 0xdeadbeef ) {
+  socket.write(data: listen)
+}
 
 // run 4eva
 dispatchMain()
+
 
 /*
 recv: 847 
