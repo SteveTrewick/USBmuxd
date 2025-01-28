@@ -199,6 +199,20 @@ class ReadHeader : MachineState {
     attempt to read a USBMuxHeader from the buffer
   */
   
+  
+  /*  MARK: the only actual difference between muxd and lockdownd is the header,
+      
+      so realistically, if we make this bit here work for both, we don't need a new
+      machine and we dont even reall need the protocol (not that protoocl anyway)
+      actually, if we create a wrapper class to pull the length we're nearly there,
+      we can't just manipulate the tyoe though as lockdownd is big endian and we need
+      to byte swap, plus in the case of usbmuxd we arguably need the tags (though
+      we can just zero them for ldd. Also we need to add an additional check on muxd
+      to make sure we are reading the right type of message (8) so we need to add an
+      error condition
+   
+   */
+  
   func execute() {
     
     
