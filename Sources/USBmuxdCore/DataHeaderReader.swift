@@ -46,7 +46,7 @@ public struct LockdownHeaderReader : DataHeaderReader {
     let len = bytes.load(as: UInt32.self)
     
     return HeaderInfo (
-      dataLength: Int( len.bigEndian ),
+      dataLength: Int( len.byteSwapped ), // lockdownd uses big endian representation
       tag       : 0
     )
   }
