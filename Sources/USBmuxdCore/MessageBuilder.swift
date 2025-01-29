@@ -29,22 +29,45 @@ import USBMuxdHeader
  
    many of the fields are optional but will help if you are tracing
  
+   lockdownd headers consist of a single UInt32 containing a big endian representation of the
+   length of the XML PList that follows :
+ 
+   00 00 01 52 [338 bytes of XML PLIST]
+ 
 */
 public struct MessageBuilder {
   
   public init() {}
   
-  public func build(from dict: [String : Any], tag: UInt32 ) -> Data? {
+  public func muxd ( dict: [String : Any], tag: UInt32 ) -> Data? {
     
-    guard
-      let pldata = try? PropertyListSerialization.data(fromPropertyList: dict, format: .xml, options: 0)
+    guard let pldata = try? PropertyListSerialization.data(fromPropertyList: dict, format: .xml, options: 0)
     else {
       return nil
     }
     
+    // add 16 because usbmuxd headers include their own length
     var header = USBMuxdHeader(length: UInt32(16 + pldata.count), version: 1, type: 8, tag: tag)
     let hdata  = Data(bytes: &header, count: 16)
     
     return hdata + pldata
   }
+  
+  
+  // same but different header
+  public func lockd ( dict: [String : Any ] ) -> Data? {
+    
+    guard let pldata = try? PropertyListSerialization.data(fromPropertyList: dict, format: .xml, options: 0)
+    else {
+      return nil
+    }
+    
+    // lockdownd headers DO NOT include their own length
+    var header = UInt32 (pldata.count).byteSwapped
+    let hdata  = Data   ( bytes: &header, count: 4 )
+    
+    return hdata + pldata
+    
+  }
+  
 }
