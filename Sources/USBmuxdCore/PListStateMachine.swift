@@ -63,7 +63,7 @@ public class PListStateMachine  {
     doing anything because that's essentially an unrecoverable state. bummer.
   */
   
-  public func process( data: Data ) {
+  public func process ( data: Data ) {
     
     // if we have failed, do nothing. or, should we embrace the chaos?
     if let _ = state as? Fail { return }
@@ -73,28 +73,31 @@ public class PListStateMachine  {
   }
   
   
-  func transition(to state: MachineState) {
+  func transition ( to state: MachineState ) {
     self.state = state
   }
   
+  /*
+    count of the unprocessed bytes remaining in the buffer
+  */
+  var unprocessedBytes : Int { buffer.count - buffptr }
 
   /*
     check to see if we have processed all the data in the buffer
     called by the Read states to determine which state to transition to next
   */
-  func finished() -> Bool {
-    buffptr >= buffer.count
-  }
+  var finished : Bool { buffptr >= buffer.count }
   
 }
 
 
 class Fail : MachineState {
+  
   func execute() { }
   
   var machine: PListStateMachine
   
-  required init(_ machine: PListStateMachine) {
+  required init (_ machine: PListStateMachine ) {
     self.machine = machine
   }
   
@@ -105,7 +108,7 @@ class Reset : MachineState {
   
   var machine: PListStateMachine
   
-  required init(_ machine: PListStateMachine) {
+  required init ( _ machine: PListStateMachine ) {
     self.machine = machine
   }
   
@@ -117,10 +120,61 @@ class Reset : MachineState {
   func execute() {
     machine.buffer   = Data()
     machine.buffptr  = 0
-    machine.transition(to: ReadHeader( machine ) )
+    machine.transition ( to: ReadHeader( machine ) )
   }
 }
 
+
+
+class ReadHeader : MachineState {
+  
+  var machine: PListStateMachine
+  
+  required init ( _ machine: PListStateMachine ) {
+    self.machine = machine
+  }
+  
+  
+  
+  /*
+    attempt to read a header from the buffer
+  */
+  func execute() {
+    
+    /*
+      if there is not enough data to read a full header, we simply exit, remaining in the
+      same state until more data is available (I have never seen this happen, TBH, but still)
+    */
+    guard machine.unprocessedBytes >= machine.reader.length else { return }
+    
+    let headend = machine.buffptr + machine.reader.length
+    
+    let headerInfo = machine.buffer[machine.buffptr..<headend].withUnsafeBytes { bytes in
+      machine.reader.load(from: bytes)
+    }
+    
+    machine.buffptr += machine.reader.length
+    machine.header  = headerInfo
+  
+    /*
+      finished reading header, there will be a PList next,
+    */
+
+    machine.transition(to: ReadPlist(machine) )
+    
+    /*
+      if we are the end of the buffer though, it isn't here yet,
+      so we transition to the ready state but do not execute.
+     
+      if there is more data, we try to make a PList out of it by executing
+    */
+    
+    if machine.finished { return }
+    else                { machine.state.execute() }
+    
+  }
+  
+}
 
 
 
@@ -142,7 +196,7 @@ class ReadPlist : MachineState {
       if there is not enough data in the buffer yet, we stop and wait in this state
       until more data comes along and we get executed again
     */
-    guard (machine.buffer.count - machine.buffptr) >= machine.header.dataLength else { return }
+    guard machine.unprocessedBytes >= machine.header.dataLength else { return }
       
     /*
       extract the relevant bytes from the buffer
@@ -178,8 +232,8 @@ class ReadPlist : MachineState {
       if there is more data it will be a header so we transition
       in both cases we execute the next state
     */
-    if machine.finished() { machine.transition ( to: Reset(machine)     ) }
-    else                  { machine.transition ( to: ReadHeader(machine)) }
+    if machine.finished { machine.transition ( to: Reset(machine)     ) }
+    else                { machine.transition ( to: ReadHeader(machine)) }
     
     machine.state.execute()
   }
@@ -187,52 +241,3 @@ class ReadPlist : MachineState {
 
 
 
-class ReadHeader : MachineState {
-  
-  var machine: PListStateMachine
-  
-  required init(_ machine: PListStateMachine) {
-    self.machine = machine
-  }
-  
-  
-  
-  /*
-    attempt to read a header from the buffer
-  */
-  func execute() {
-    
-    /*
-      if there is not enough data to read a full header, we simply exit, remaining in the
-      same state until more data is available (I have never seen this happen, TBH, but still)
-    */
-    guard (machine.buffer.count - machine.buffptr) >= machine.reader.length else { return }
-    
-    let headend = machine.buffptr + machine.reader.length
-    
-    let headerInfo = machine.buffer[machine.buffptr..<headend].withUnsafeBytes { bytes in
-      machine.reader.load(from: bytes)
-    }
-    
-    machine.buffptr    += machine.reader.length
-    machine.header  = headerInfo
-  
-    /*
-      finished reading header, there will be a PList next,
-    */
-
-    machine.transition(to: ReadPlist(machine) )
-    
-    /*
-      if we are the end of the buffer though, it isn't here yet,
-      so we transition to the ready state but do not execute.
-     
-      if there is more data, we try to make a PList out of it by executing
-    */
-    
-    if machine.finished() { return }
-    else                  { machine.state.execute() }
-    
-  }
-  
-}
