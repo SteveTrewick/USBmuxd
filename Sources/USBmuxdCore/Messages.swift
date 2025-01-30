@@ -4,13 +4,13 @@ import Foundation
 
 public struct DeviceProperties : Codable {
 
-  let connectionSpeed : Int?
-  let connectionType  : String
-  let deviceID        : Int
-  let locationID      : Int?
-  let productID       : Int?
-  let serialNumber    : String
-  let usbSerialNumber : String?
+  public let connectionSpeed : Int?
+  public let connectionType  : String
+  public let deviceID        : Int
+  public let locationID      : Int?
+  public let productID       : Int?
+  public let serialNumber    : String
+  public let usbSerialNumber : String?
   
   /*
    these cropped up, fun!
@@ -23,10 +23,10 @@ public struct DeviceProperties : Codable {
    annoying, because it means there could be more of this lurking
   */
   
-  let escapedFullServiceName : String?
-  let interfaceIndex         : Int?
-  let networkAddress         : Data?
-  let udid                   : String?
+  public let escapedFullServiceName : String?
+  public let interfaceIndex         : Int?
+  public let networkAddress         : Data?
+  public let udid                   : String?
   
   
   
@@ -54,8 +54,8 @@ public struct DeviceProperties : Codable {
 public struct Device : Codable {
   
   public let deviceID    : Int
-         let messageType : String
-         let properties  : DeviceProperties
+  public let messageType : String
+  public let properties  : DeviceProperties
 
   enum CodingKeys : String, CodingKey {
     case deviceID    = "DeviceID"
@@ -89,7 +89,7 @@ public struct MuxResult : Codable {
 
 public struct MuxMessage : Codable {
   
-  let messageType : StringLiteralType
+  public let messageType : StringLiteralType
   
   public init(messageType: String) {
     self.messageType = messageType
@@ -110,8 +110,8 @@ public struct MuxMessage : Codable {
 */
 
 public struct MuxDetatch : Codable {
-  let deviceID   : Int
-  let messageType: String
+  public let deviceID   : Int
+  public let messageType: String
   
   enum CodingKeys : String, CodingKey {
     case messageType = "MessageType"
@@ -122,9 +122,9 @@ public struct MuxDetatch : Codable {
 
 public struct Connect : Codable {
   
-  let messageType: String = "Connect"
-  let portNumber : Int
-  let deviceID   : Int
+  public let messageType: String = "Connect"
+  public let portNumber : Int
+  public let deviceID   : Int
   
   public init ( device: Int, port : Int ) {
     self.deviceID   = device
@@ -141,8 +141,8 @@ public struct Connect : Codable {
 
 
 public struct LockdownRequest : Codable {
-  let key     : String
-  let request : String
+  public let key     : String
+  public let request : String
   
   public init ( key: String, request: String ) {
     self.key     = key
