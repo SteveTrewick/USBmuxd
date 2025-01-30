@@ -111,3 +111,23 @@ public struct MuxDetatch : Codable {
     case deviceID    = "DeviceID"
   }
 }
+
+
+public struct Connect : Codable {
+  
+  let messageType: String = "Connect"
+  let portNumber : Int
+  let deviceID   : Int
+  
+  public init ( device: Int, port : Int ) {
+    self.deviceID   = device
+    self.portNumber = port
+  }
+  
+  enum CodingKeys : String, CodingKey {
+    case messageType = "MessageType"
+    case portNumber  = "PortNumber"
+    case deviceID    = "DeviceID"
+  }
+  
+}
