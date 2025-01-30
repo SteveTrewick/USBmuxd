@@ -77,4 +77,19 @@ public struct MuxResult {
 /*
   really we should also build our own messages this way using
   a constructor to handle the boilerplate stuff.
+ 
 */
+
+public struct MuxMessage : Codable {
+  
+  let messageType : StringLiteralType
+  
+  public init(messageType: String) {
+    self.messageType = messageType
+  }
+  
+  enum CodingKeys : String, CodingKey {
+    case messageType = "MessageType"
+  }
+}
+

@@ -37,7 +37,15 @@ import USBMuxdHeader
 */
 public struct MessageBuilder {
   
-  public init() {}
+  
+  let encoder = PropertyListEncoder()
+  
+  public init() {
+    encoder.outputFormat = .xml
+  }
+  
+  
+  
   
   public func muxd ( dict: [String : Any], tag: UInt32 ) -> Data? {
     
@@ -47,11 +55,27 @@ public struct MessageBuilder {
     }
     
     // add 16 because usbmuxd headers include their own length
-    var header = USBMuxdHeader(length: UInt32(16 + pldata.count), version: 1, type: 8, tag: tag)
-    let hdata  = Data(bytes: &header, count: 16)
+    var header = USBMuxdHeader ( length: UInt32(16 + pldata.count), version: 1, type: 8, tag: tag )
+    let hdata  = Data ( bytes: &header, count: 16 )
     
     return hdata + pldata
   }
+  
+  
+  // same but with typeed message
+  public func muxd ( msg: MuxMessage, tag: UInt32 ) -> Data? {
+    
+    guard let pldata = try? encoder.encode(msg)
+    else {
+      return nil
+    }
+    
+    var header = USBMuxdHeader ( length: UInt32(16 + pldata.count), version: 1, type: 8, tag: tag )
+    let hdata  = Data ( bytes: &header, count: 16 )
+    
+    return hdata + pldata
+  }
+  
   
   
   // same but different header
