@@ -25,18 +25,17 @@ public class DeviceEnumerator {
   var lockdSocket : GCDSocketClient<sockaddr_un>!
   var state       : EnumeratorState!
   
-  var devices     : [Int: DeviceDescriptor] = [:]
-  var candidates  : [Device]      = []
-  var candidate   : Int           = 0
+  var devices     : [DeviceDescriptor] = []
+  var candidates  : [Device]           = []
+  var candidate   : Int                = 0
   
-  // shit type
-  var completion: ((Result<[Int : DeviceDescriptor], Error>)->Void)? = nil
+  var completion: ((Result<[DeviceDescriptor], Error>)->Void)? = nil
   
   public init() {
     
   }
   
-  public func enumerateDevices(_ completion: @escaping (Result<[Int : DeviceDescriptor], Error>)->Void ) {
+  public func enumerateDevices(_ completion: @escaping (Result<[DeviceDescriptor], Error>)->Void ) {
     self.completion = completion
     self.state      = EnumConnect(self)
     self.state.execute()
@@ -169,10 +168,10 @@ class EnumLockdQuery : EnumeratorState {
           // we never get ere
           //print(response)
           if let response = response as? LockdownResponse {
-            machine.devices [device] = DeviceEnumerator.DeviceDescriptor (
+            machine.devices += [ DeviceEnumerator.DeviceDescriptor (
               device: machine.candidates[machine.candidate],
               name  : response.value
-            )
+            )]
             machine.candidate += 1
             lockdSocket.dataHandler = nil
             lockdSocket.close()
@@ -201,7 +200,7 @@ class EnumDeliver : EnumeratorState {
   func execute() {
     
     defer {
-      machine.devices    = [:]
+      machine.devices    = []
       machine.candidates = []
       machine.candidate  = 0
     }
