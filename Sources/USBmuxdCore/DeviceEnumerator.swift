@@ -182,7 +182,6 @@ class EnumLockdQuery : EnumeratorState {
         lockdSocket.write(data: machine.message.lockd(msg: LockdownRequest(key: "DeviceName", request: "GetValue")))
       }
     }
-    // feel like we might need difeerent numbers??
     lockdSocket.write(data: machine.message.muxd(msg: connect, tag: 0xcafe))
     
 
@@ -201,6 +200,11 @@ class EnumDeliver : EnumeratorState {
   
   func execute() {
     
+    defer {
+      machine.devices    = [:]
+      machine.candidates = []
+      machine.candidate  = 0
+    }
     machine.completion? ( .success(machine.devices) )
   }
 }
