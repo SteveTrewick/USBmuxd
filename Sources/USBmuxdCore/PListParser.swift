@@ -11,8 +11,8 @@ import USBMuxdHeader
 
 protocol MachineState {
   func execute()
-  var  machine : PListStateMachine { get }
-  init ( _ machine: PListStateMachine)
+  var  machine : PListParser { get }
+  init ( _ machine: PListParser)
 }
 
 
@@ -29,7 +29,7 @@ public struct HeaderInfo {
 
 
 
-public class PListStateMachine  {
+public class PListParser  {
   
     
   var buffer  : Data       =  Data()
@@ -108,9 +108,9 @@ class Fail : MachineState {
   
   func execute() { }
   
-  var machine: PListStateMachine
+  var machine: PListParser
   
-  required init (_ machine: PListStateMachine ) {
+  required init (_ machine: PListParser ) {
     self.machine = machine
   }
   
@@ -119,9 +119,9 @@ class Fail : MachineState {
 
 class Reset : MachineState {
   
-  var machine: PListStateMachine
+  var machine: PListParser
   
-  required init ( _ machine: PListStateMachine ) {
+  required init ( _ machine: PListParser ) {
     self.machine = machine
   }
   
@@ -141,9 +141,9 @@ class Reset : MachineState {
 
 class ReadHeader : MachineState {
   
-  var machine: PListStateMachine
+  var machine: PListParser
   
-  required init ( _ machine: PListStateMachine ) {
+  required init ( _ machine: PListParser ) {
     self.machine = machine
   }
   
@@ -193,9 +193,9 @@ class ReadHeader : MachineState {
 
 class ReadPlist : MachineState {
   
-  var machine: PListStateMachine
+  var machine: PListParser
   
-  required init (_ machine: PListStateMachine ) {
+  required init (_ machine: PListParser ) {
     self.machine = machine
   }
   

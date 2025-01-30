@@ -20,7 +20,7 @@ public class DeviceEnumerator {
   let message     = MessageBuilder()
   let construct   = GCDSocketConstructor()
   let router      = ResponseRouter()
-  var parser      = PListStateMachine ( header: .muxd )
+  var parser      = PListParser ( header: .muxd )
   var muxdSocket  : GCDSocketClient<sockaddr_un>!
   var lockdSocket : GCDSocketClient<sockaddr_un>!
   var state       : EnumeratorState!
@@ -117,8 +117,8 @@ class EnumLockdQuery : EnumeratorState {
   
   var machine     : DeviceEnumerator
   var lockdSocket : GCDSocketClient<sockaddr_un>!
-  var parser      = PListStateMachine(header: .muxd )
-  let lockdParser = PListStateMachine(header: .lockd)
+  var parser      = PListParser(header: .muxd )
+  let lockdParser = PListParser(header: .lockd)
   let router      = ResponseRouter()
   
   required init (_ machine: DeviceEnumerator ) {
