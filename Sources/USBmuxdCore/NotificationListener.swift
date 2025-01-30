@@ -55,7 +55,6 @@ public struct NotificationListener {
             }
           
             if let result = try? decoder.decode(MuxResult.self, from: data) {
-              print(result)
               if result.number != 0 {
                 notify? (.failure(NOK.nok) )
               }
