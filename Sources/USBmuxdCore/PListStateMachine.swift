@@ -39,24 +39,16 @@ public class PListStateMachine  {
   var state  : MachineState!
   var reader : DataHeaderReader
   
-  public var format : PListFormat
+  public var messageHandler : ((Result < ( tag: UInt32, data: Data ), MachineError > ) -> Void)? = nil
   
-  public var messageHandler : ((Result < ( tag: UInt32, plist: PListResult ), MachineError > ) -> Void)? = nil
-  
-  public enum PListFormat {
-    case dict, data
-  }
-  
-  public enum PListResult {
-    case dict ( [String: Any] )
-    case data ( Data )
-  }
   
   public enum HeaderType {
     case lockd, muxd
   }
   
-  public init ( header type: HeaderType, format: PListFormat = .dict ) {
+  
+  
+  public init ( header type: HeaderType ) {
     
     func reader(for type: HeaderType) -> DataHeaderReader {
       switch type {
@@ -66,7 +58,6 @@ public class PListStateMachine  {
     }
     
     self.reader = reader(for: type)
-    self.format = format
     self.state  = ReadHeader(self)
   }
   
@@ -225,43 +216,9 @@ class ReadPlist : MachineState {
     */
     let chunk = machine.buffer[machine.buffptr..<(machine.buffptr + machine.header.dataLength)]
     
-    
-    switch machine.format {
-      
-      case .dict :
-    
-          /*
-            I have no idea why this form of PLS requires us to pass a pointer, but it does <shrug>
-          */
-          var xml : PropertyListSerialization.PropertyListFormat = .xml
-          
-          guard let plist = try? PropertyListSerialization.propertyList(from: chunk, options: .mutableContainersAndLeaves, format: &xml)
-          else {
-            machine.messageHandler?( .failure(.xmlfail) )
-            machine.transition     ( to: Fail(machine)  )
-            return
-          }
-          
-          // unlikely fail, but still
-          guard let dict = plist as? [String : Any]
-          else {
-            machine.messageHandler?( .failure(.dictfail) )
-            machine.transition     ( to: Fail(machine)   )
-            return
-          }
-          
-          machine.messageHandler?( .success( (machine.header.tag, .dict(dict))) )
-    
-      
-      
-      case .data :
-          machine.messageHandler?( .success( (machine.header.tag, .data(chunk))) )
-        
-    
-    }
+    machine.messageHandler?( .success( (machine.header.tag, chunk) ) )
     
     machine.buffptr += machine.header.dataLength
-    
     
     /*
       if we are at the end of the buffer, time to reset all the things
