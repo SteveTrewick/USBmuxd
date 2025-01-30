@@ -46,9 +46,9 @@ public struct DeviceProperties : Codable {
 
 public struct Device : Codable {
   
-  let deviceID    : Int
-  let messageType : String
-  let properties  : DeviceProperties
+  public let deviceID    : Int
+         let messageType : String
+         let properties  : DeviceProperties
 
   enum CodingKeys : String, CodingKey {
     case deviceID    = "DeviceID"
@@ -129,5 +129,38 @@ public struct Connect : Codable {
     case portNumber  = "PortNumber"
     case deviceID    = "DeviceID"
   }
+  
+}
+
+
+public struct LockdownRequest : Codable {
+  let key     : String
+  let request : String
+  
+  public init ( key: String, request: String ) {
+    self.key     = key
+    self.request = request
+  }
+  
+  enum CodingKeys : String, CodingKey {
+    case key     = "Key"
+    case request = "Request"
+  }
+  
+}
+
+
+public struct LockdownResponse : Codable {
+  
+  let key     : String
+  let request : String
+  let value   : String
+  
+  enum CodingKeys : String, CodingKey {
+    case key     = "Key"
+    case request = "Request"
+    case value   = "Value"
+  }
+  
   
 }
