@@ -63,12 +63,9 @@ public struct MessageBuilder {
   
   
   // same but with typeed message
-  public func muxd ( msg: MuxMessage, tag: UInt32 ) -> Data? {
+  public func muxd<T: Codable> ( msg: T, tag: UInt32 ) -> Data {
     
-    guard let pldata = try? encoder.encode(msg)
-    else {
-      return nil
-    }
+    let pldata = try! encoder.encode(msg)
     
     var header = USBMuxdHeader ( length: UInt32(16 + pldata.count), version: 1, type: 8, tag: tag )
     let hdata  = Data ( bytes: &header, count: 16 )
@@ -77,6 +74,19 @@ public struct MessageBuilder {
   }
   
   
+  
+  public func lockd<T: Codable> (msg: T) -> Data {
+    
+    /*
+      these can't crash, right?
+    */
+    let pldata = try! encoder.encode(msg)
+    
+    var header = UInt32 (pldata.count).byteSwapped
+    let hdata  = Data   ( bytes: &header, count: 4 )
+    
+    return hdata + pldata
+  }
   
   // same but different header
   public func lockd ( dict: [String : Any ] ) -> Data? {
