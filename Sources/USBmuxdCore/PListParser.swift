@@ -71,9 +71,6 @@ public class PListParser  {
    
     when they are done they will transition to the next suitable state and either execute
     it or wait
-   
-    if we fail at decoding a PList, we transition to a fail state and just stop
-    doing anything because that's essentially an unrecoverable state. bummer.
   */
   
   public func process ( data: Data ) {
