@@ -65,8 +65,8 @@ public struct Device : Codable {
 
 public struct MuxResult : Codable {
   
-  let messageType : String
-  let number      : Int
+  public let messageType : String
+  public let number      : Int
   
   enum CodingKeys : String, CodingKey {
     case messageType = "MessageType"
@@ -152,9 +152,9 @@ public struct LockdownRequest : Codable {
 
 public struct LockdownResponse : Codable {
   
-  let key     : String
-  let request : String
-  let value   : String
+  public let key     : String
+  public let request : String
+  public let value   : String
   
   enum CodingKeys : String, CodingKey {
     case key     = "Key"
