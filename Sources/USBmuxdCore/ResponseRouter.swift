@@ -1,6 +1,5 @@
 import Foundation
 import GCDSocket
-import USBmuxdCore
 
 /*
   ok, some routing, this is not very elegant TBH
