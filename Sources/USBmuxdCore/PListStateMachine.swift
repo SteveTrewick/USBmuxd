@@ -52,9 +52,20 @@ public class PListStateMachine  {
     case data ( Data )
   }
   
-  public init ( reader: DataHeaderReader, format: PListFormat = .dict ) {
+  public enum HeaderType {
+    case lockd, muxd
+  }
+  
+  public init ( header type: HeaderType, format: PListFormat = .dict ) {
     
-    self.reader = reader
+    func reader(for type: HeaderType) -> DataHeaderReader {
+      switch type {
+        case .muxd  : return USBMuxHeaderReader()
+        case .lockd : return LockdownHeaderReader()
+      }
+    }
+    
+    self.reader = reader(for: type)
     self.format = format
     self.state  = ReadHeader(self)
   }
