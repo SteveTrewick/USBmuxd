@@ -39,12 +39,23 @@ public class PListStateMachine  {
   var state  : MachineState!
   var reader : DataHeaderReader
   
-  public var messageHandler : ((Result < ( tag: UInt32, dict: [String: Any] ), MachineError > ) -> Void)? = nil
+  public var format : PListFormat
   
+  public var messageHandler : ((Result < ( tag: UInt32, plist: PListResult ), MachineError > ) -> Void)? = nil
   
-  public init ( reader: DataHeaderReader ) {
+  public enum PListFormat {
+    case dict, data
+  }
+  
+  public enum PListResult {
+    case dict ( [String: Any] )
+    case data ( Data )
+  }
+  
+  public init ( reader: DataHeaderReader, format: PListFormat = .dict ) {
     
     self.reader = reader
+    self.format = format
     self.state  = ReadHeader(self)
   }
   
@@ -203,27 +214,41 @@ class ReadPlist : MachineState {
     */
     let chunk = machine.buffer[machine.buffptr..<(machine.buffptr + machine.header.dataLength)]
     
-    /*
-      I have no idea why this form of PLS requires us to pass a pointer, but it does <shrug>
-    */
-    var xml : PropertyListSerialization.PropertyListFormat = .xml
     
-    guard let plist = try? PropertyListSerialization.propertyList(from: chunk, options: .mutableContainersAndLeaves, format: &xml)
-    else {
-      machine.messageHandler?( .failure(.xmlfail) )
-      machine.transition     ( to: Fail(machine)  )
-      return
+    switch machine.format {
+      
+      case .dict :
+    
+          /*
+            I have no idea why this form of PLS requires us to pass a pointer, but it does <shrug>
+          */
+          var xml : PropertyListSerialization.PropertyListFormat = .xml
+          
+          guard let plist = try? PropertyListSerialization.propertyList(from: chunk, options: .mutableContainersAndLeaves, format: &xml)
+          else {
+            machine.messageHandler?( .failure(.xmlfail) )
+            machine.transition     ( to: Fail(machine)  )
+            return
+          }
+          
+          // unlikely fail, but still
+          guard let dict = plist as? [String : Any]
+          else {
+            machine.messageHandler?( .failure(.dictfail) )
+            machine.transition     ( to: Fail(machine)   )
+            return
+          }
+          
+          machine.messageHandler?( .success( (machine.header.tag, .dict(dict))) )
+    
+      
+      
+      case .data :
+          machine.messageHandler?( .success( (machine.header.tag, .data(chunk))) )
+        
+    
     }
     
-    // unlikely fail, but still
-    guard let dict = plist as? [String : Any]
-    else {
-      machine.messageHandler?( .failure(.dictfail) )
-      machine.transition     ( to: Fail(machine)   )
-      return
-    }
-    
-    machine.messageHandler?( .success( (machine.header.tag, dict)) )
     machine.buffptr += machine.header.dataLength
     
     
