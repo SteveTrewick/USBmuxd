@@ -2,31 +2,33 @@
 import Foundation
 
 
-/*
-  eventually we need to pull concrete tyeps out of the various PLists.
-  
-  Muggins here forgot all about PropertyListDecoder and Codable,
-  which means we can just do this and not fuss fart around with dictionaries
- 
- e.g.
- 
- if let deviceList = try decoder.decode( [String : [Device] ].self, from: devdata)["DeviceList"] {
-     debugPrint ( deviceList )
- }
- 
- 
-*/
-
-
 public struct DeviceProperties : Codable {
 
-  let connectionSpeed : Int
+  let connectionSpeed : Int?
   let connectionType  : String
   let deviceID        : Int
-  let locationID      : Int
-  let productID       : Int
+  let locationID      : Int?
+  let productID       : Int?
   let serialNumber    : String
-  let usbSerialNumber : String
+  let usbSerialNumber : String?
+  
+  /*
+   these cropped up, fun!
+   I plugged in another phone, an old one that has been used for XCode development and
+   appears to have WiFi debugging enabled or something, anyhoo, then it also turned out
+   that it creates a whole extra device with a whole different set of properties, sigh.
+   hence this mess. we will of course want to filter it out later because we don't want to
+   connect over WiFi.
+   
+   annoying, because it means there could be more of this lurking
+  */
+  
+  let escapedFullServiceName : String?
+  let interfaceIndex         : Int?
+  let networkAddress         : Data?
+  let udid                   : String?
+  
+  
   
   /*
     this is somewhat petty but I just don't want the capitalisation OK?
@@ -39,6 +41,11 @@ public struct DeviceProperties : Codable {
     case productID       = "ProductID"
     case serialNumber    = "SerialNumber"
     case usbSerialNumber = "USBSerialNumber"
+    
+    case escapedFullServiceName = "EscapedFullServiceName"
+    case interfaceIndex         = "InterfaceIndex"
+    case networkAddress         = "NetworkAddress"
+    case udid                   = "UDID"
   }
 }
 
