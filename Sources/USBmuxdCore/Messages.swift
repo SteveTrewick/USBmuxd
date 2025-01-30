@@ -63,10 +63,10 @@ public struct Device : Codable {
   but these will do to pull all the info out of the plists
 */
 
-public struct MuxResult {
+public struct MuxResult : Codable {
   
   let messageType : String
-  let number      : String
+  let number      : Int
   
   enum CodingKeys : String, CodingKey {
     case messageType = "MessageType"
@@ -93,3 +93,21 @@ public struct MuxMessage : Codable {
   }
 }
 
+
+/* NB the attach message is all good, but this, not so much
+   we will need additional code to process attach/detach events
+ 0 {
+     DeviceID = 1395;
+     MessageType = Detached;
+ }
+*/
+
+public struct MuxDetatch : Codable {
+  let deviceID   : Int
+  let messageType: String
+  
+  enum CodingKeys : String, CodingKey {
+    case messageType = "MessageType"
+    case deviceID    = "DeviceID"
+  }
+}
