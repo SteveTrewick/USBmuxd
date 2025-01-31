@@ -91,9 +91,12 @@ See also the issues tab.
 OK, how do we use it? This example also uses [GCDSocket](https://github.com/SteveTrewick/GCDSocket) 
 for talking to the domain socket, which is also now a dependency in the swift package. 
 
-## Listen/ListDevices - old school bare calls
+## Listen/ListDevices - Old School Bare Calls
 
-Using the base features we can do that like this
+Using the base features we can do that like this. Note that the Listen call sends you a device message 
+for each device that is already attached Note also the device list gives us an extra network connected device, 
+I have two iPhones connected for this example and one is doing some wireless thangs. Funky.  Note especially that 
+sending the Listen message more than once makes usbmuxd very, very unhappy, so don't do that.
 
 ```swift
 import Foundation
@@ -144,6 +147,113 @@ socket.write ( data: message.muxd(msg: MuxMessage(messageType: "Listen"), tag: 0
 
 // lets also grab a device list using the new Codable interface
 socket.write ( data: message.muxd(msg: MuxMessage(messageType: "ListDevices"), tag: 0xfd) )
+
+// run 4eva
+RunLoop.current.run()
+
+/*
+254 {
+    MessageType = Result;
+    Number = 0;
+}
+0 {
+    DeviceID = 5;
+    MessageType = Attached;
+    Properties =     {
+        ConnectionSpeed = 480000000;
+        ConnectionType = USB;
+        DeviceID = 5;
+        LocationID = 336592896;
+        ProductID = 4776;
+        SerialNumber = "00008030-001E752A22D2402E";
+        UDID = "00008030-001E752A22D2402E";
+        USBSerialNumber = 00008030001E752A22D2402E;
+    };
+}
+0 {
+    DeviceID = 1;
+    MessageType = Attached;
+    Properties =     {
+        ConnectionSpeed = 480000000;
+        ConnectionType = USB;
+        DeviceID = 1;
+        LocationID = 337641472;
+        ProductID = 4776;
+        SerialNumber = "00008120-0006696026A2201E";
+        USBSerialNumber = 000081200006696026A2201E;
+    };
+}
+253 {
+    DeviceList =     (
+                {
+            DeviceID = 5;
+            MessageType = Attached;
+            Properties =             {
+                ConnectionSpeed = 480000000;
+                ConnectionType = USB;
+                DeviceID = 5;
+                LocationID = 336592896;
+                ProductID = 4776;
+                SerialNumber = "00008030-001E752A22D2402E";
+                UDID = "00008030-001E752A22D2402E";
+                USBSerialNumber = 00008030001E752A22D2402E;
+            };
+        },
+                {
+            DeviceID = 2;
+            MessageType = Attached;
+            Properties =             {
+                ConnectionType = Network;
+                DeviceID = 2;
+                EscapedFullServiceName = "78:e3:de:10:ba:bc@fe80::7ae3:deff:fe10:babc._apple-mobdev2._tcp.local.";
+                InterfaceIndex = 4;
+                NetworkAddress = {length = 128, bytes = 0x1c1e0000 00000000 fe800000 00000000 ... 00000000 00000000 };
+                SerialNumber = "00008030-001E752A22D2402E";
+            };
+        },
+                {
+            DeviceID = 1;
+            MessageType = Attached;
+            Properties =             {
+                ConnectionSpeed = 480000000;
+                ConnectionType = USB;
+                DeviceID = 1;
+                LocationID = 337641472;
+                ProductID = 4776;
+                SerialNumber = "00008120-0006696026A2201E";
+                USBSerialNumber = 000081200006696026A2201E;
+            };
+        }
+    );
+}
+*/
+```
+
+## Listening for Devices - NotificationListener
+
+Honestly though, if you are going to listen for the notifications, just do it like this, get your notifications
+as concrete Device types and do things with them later using another socket.  Speaking of which, open 
+as many as you like, one for everything, usbmuxd doesn't care, that's its job and it keeps your result paths clean.
+
+```swift
+
+import Foundation
+import USBmuxd
+
+
+var notification = USBmuxd.NotificationListener()
+
+notification.notify = { result in
+  switch result {
+    case .failure(let fail)   : print(fail)
+    case .success(let notify) :
+      switch notify {
+        case .detach(let id)     : print("DETACHED :\(id)")
+        case .attach(let device) : print("ATTACHED : \(device)")
+      }
+  }
+}
+notification.connect()
 
 // run 4eva
 RunLoop.current.run()
