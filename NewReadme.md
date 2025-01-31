@@ -107,7 +107,16 @@ ATTACHED : Device(deviceID: 1, messageType: "Attached", properties: USBmuxd.Devi
 ```
 
 
-## Connect To TCP Service On Device
+## Using The Toolkit
+
+So far, so good but to do anything more interesting like actually connecting to any services on a device we
+need to look at things in a more bare bones way using the bits of USBmuxd that are enabling the above.
+
+### MessageBuilder
+
+
+
+## Coonecting To TCP Services - Getting Device Name From Lockdown Daemon
 
 
 
@@ -167,7 +176,7 @@ print ( hex.dump(dlmsg)        )
 
 socket.write(data: dlmsg)
 
-RunLoop.current.run() //4eva
+RunLoop.current.run() // 4eva
 
 ```
 
