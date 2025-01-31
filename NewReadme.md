@@ -137,3 +137,58 @@ The tag field allows us to distinguish which of our requests usbmuxd is respondi
 to our request and the response will carry the same tag. Note however that if we issue a 'Listen' request
 the notifications we recieve will always have tag == 0. 
 
+## Response Data Packet
+
+In return we get a similar packet indicating 847 total bytes and including our tag.
+
+```
+4f 03 00 00 01 00 00 00 08 00 00 00 ef be ad de  O...............
+
+3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31  <?xml.version="1
+2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54  .0".encoding="UT
+...
+64 69 63 74 3e 0a 3c 2f 70 6c 69 73 74 3e 0a     dict>.</plist>.
+```
+
+## Response XML
+
+In our XML resposne we get what swift would call a `[String : Any]` where the value for key DeviceList
+is a `[ [String: Any] ]`. Awesome. XML is fun! For reasons, macOS lacks the fancier XML parsing facilities
+that exist on iOS (at least on the version I'm stranded on) so I have leaned heavily into Codable 
+to encode/decode these messages.
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>DeviceList</key>
+  <array>
+    <dict>
+      <key>DeviceID</key>
+      <integer>38</integer>
+      <key>MessageType</key>
+      <string>Attached</string>
+      <key>Properties</key>
+      <dict>
+        <key>ConnectionSpeed</key>
+        <integer>480000000</integer>
+        <key>ConnectionType</key>
+        <string>USB</string>
+        <key>DeviceID</key>
+        <integer>38</integer>
+        <key>LocationID</key>
+        <integer>337641472</integer>
+        <key>ProductID</key>
+        <integer>4776</integer>
+        <key>SerialNumber</key>
+        <string>00008120-0006696026A2201E</string>
+        <key>USBSerialNumber</key>
+        <string>000081200006696026A2201E</string>
+      </dict>
+    </dict>
+  </array>
+</dict>
+</plist>
+
+```
