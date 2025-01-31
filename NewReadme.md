@@ -257,3 +257,13 @@ I have an iPhone SE that presents an additional wireless interface and includes 
 </plist>
 
 ```
+
+## Listening For Device Connections
+
+Using the exact same as bove, we send a "Listen" message, usbmuxd will now do several things :
+
+1. Send us an OK message.
+2. Send us a message for every device that is currently connected.
+3. Send us a message every time a device is connected or disconnected.
+
+
