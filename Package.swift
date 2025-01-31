@@ -4,14 +4,16 @@
 import PackageDescription
 
 let package = Package(
-    name: "USBmuxd",
-    products: [ .library( name: "USBmuxd", targets: ["USBmuxd"] ), ],
-    dependencies: [ ],
+    name        : "USBmuxd",
+    products    : [ .library( name: "USBmuxd", targets: ["USBmuxd"] ), ],
+    dependencies: [
+      .package(name: "GCDSocket", url: "https://github.com/SteveTrewick/GCDSocket", from: "1.0.3")
+    ],
     targets: [
        
       .target(
           name: "USBmuxd",
-          dependencies: ["USBMuxdHeader"],
+          dependencies: ["USBMuxdHeader", "GCDSocket"],
           path: "Sources/USBmuxd"
       ),
       
