@@ -62,7 +62,14 @@ enumerator.enumerateDevices { result  in
     }
   }
 }
-RunLoop.current.run() //4eva
+RunLoop.current.run() // 4eva
+
+/*
+
+DeviceDescriptor(device: USBmuxd.Device(deviceID: 5, ... )), name: "iPhone SE")
+DeviceDescriptor(device: USBmuxd.Device(deviceID: 1, ... )), name: "iPhone")
+
+*/
 ```
 
 ## Example - Notify Connect/Disconnect
@@ -87,6 +94,16 @@ notification.notify = { result in
 notification.connect()
 
 RunLoop.current.run() //4eva
+
+
+/*
+
+ATTACHED : Device(deviceID: 5, messageType: "Attached", properties: USBmuxd.DeviceProperties(connectionSpeed: Optional(480000000), connectionType: "USB", deviceID: 5, locationID: Optional(336592896), productID: Optional(4776), serialNumber: "00008030-001E752A22D2402E", usbSerialNumber: Optional("00008030001E752A22D2402E"), escapedFullServiceName: nil, interfaceIndex: nil, networkAddress: nil, udid: Optional("00008030-001E752A22D2402E")))
+ATTACHED : Device(deviceID: 1, messageType: "Attached", properties: USBmuxd.DeviceProperties(connectionSpeed: Optional(480000000), connectionType: "USB", deviceID: 1, locationID: Optional(337641472), productID: Optional(4776), serialNumber: "00008120-0006696026A2201E", usbSerialNumber: Optional("000081200006696026A2201E"), escapedFullServiceName: nil, interfaceIndex: nil, networkAddress: nil, udid: nil))
+
+... further messages if we mess with stuff
+
+*/
 ```
 
 
