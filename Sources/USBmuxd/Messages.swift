@@ -126,9 +126,9 @@ public struct Connect : Codable {
   public let portNumber : Int
   public let deviceID   : Int
   
-  public init ( device: Int, port : Int ) {
+  public init ( device: Int, port : UInt16 ) {
     self.deviceID   = device
-    self.portNumber = port
+    self.portNumber = Int(port.byteSwapped)
   }
   
   enum CodingKeys : String, CodingKey {

@@ -155,7 +155,7 @@ class EnumLockdQuery : EnumeratorState {
     lockdSocket.connect()
     
     let device  = machine.candidates[machine.candidate].deviceID
-    let connect = Connect(device: device, port: 32498)
+    let connect = Connect(device: device, port: 62078)
     
     router.expect(tag: 0xcafe, response: .result) { [self] result  in
       //print(result)
