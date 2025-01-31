@@ -45,44 +45,19 @@ Anyway, lets have a look. We'll send a "ListDevices" message and look at the mes
 
 ```swift
 
-import Foundation
-import HexDump
-import USBmuxd
-import GCDSocket
-
-
-let msgDict = ["MessageType":"ListDevices"]
-
-
-let socket  = GCDSocketConstructor().domainSocketClient(path: "/var/run/usbmuxd")
-let message = USBmuxd.MessageBuilder()
-let parser  = USBmuxd.PListParser(header: .muxd)
-let hex     = HexDump()
-
-
-func dumpXML(_ data: Data) {
-  if let xml = String(data: data, encoding: .utf8) {
-    print(xml)
-  }
-}
+func dumpXML (_ data: Data ) -> String { String(data: data, encoding: .utf8) ?? "" }
 
 socket.dataHandler = { result in
   switch result {
     case .failure(let fail): print(fail)
-    case .success(let data):
-       
-        print ( hex.dump(data) )
-        parser.process (data: data )
+    case .success(let data): print ( hex.dump(data) ); parser.process (data: data )
   }
 }
 
 parser.messageHandler = { result in
   switch result {
-      case .failure(let fail)        : print(fail)
-      case .success(let (tag, data)) :
-        
-        print(String(format:"%02x", tag))
-        dumpXML(data)
+      case .failure(let fail) : print(fail)
+      case .success(let (tag, data)) : print(String(format:"%02x", tag));  print( dumpXML(data) )
   }
 }
 
@@ -90,12 +65,13 @@ socket.connect()
 
 let dlmsg = message.muxd(msg: MuxMessage(messageType: "ListDevices"), tag: 0xdeadbeef)
 
-dumpXML(dlmsg[16...])
-print( hex.dump(dlmsg) )
+print ( dumpXML( dlmsg[16...] )) // avoid header
+print ( hex.dump(dlmsg)        )
 
 socket.write(data: dlmsg)
 
-RunLoop.current.run()
+RunLoop.current.run() //4eva
+
 ```
 
 # XML Request
