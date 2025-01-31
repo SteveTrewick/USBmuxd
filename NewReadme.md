@@ -45,6 +45,10 @@ When you are done do not forget to:
 $ sudo mv /var/run/usbmuxd_real /var/run/usbmuxd
 ```
 
+If you want to write your own you can have a look at the sample in [GCDSocket](https://github.com/SteveTrewick/GCDSocket?tab=readme-ov-file#intercepting-proxy-server)
+which USBmuxd depends upon, though a proper trace will require stateful connection tracking to detect, amongst other
+things, when a client has transitioned to connection to lockd or initiated an SSL connection.
+
 Anyway, lets have a look. We'll send a "ListDevices" message and look at the message and response
 
 ```swift
@@ -93,7 +97,7 @@ The XML we just generated looks like this, pretty noisy TBH.
 </plist>
 ```
 
-## Data Packet
+## Request Data Packet
 
 To actually send that out on the wire we need to prepend a 16 byte header
 
@@ -149,7 +153,7 @@ the notifications we recieve will always have tag == 0.
 
 ## Response Data Packet
 
-In return we get a similar packet indicating 847 total bytes and including our tag.
+In return we get a similar packet indicating 847 total bytes (including the header) and including our tag.
 
 ```
 4f 03 00 00 01 00 00 00 08 00 00 00 ef be ad de  O...............
@@ -213,6 +217,10 @@ In our XML resposne we get what swift would call a `[String : Any]` where the va
 is a `[ [String: Any] ]`. Awesome. XML is fun! For reasons, macOS lacks the fancier XML parsing facilities
 that exist on iOS (at least on the version I'm stranded on) so I have leaned heavily into Codable 
 to encode/decode these messages.
+
+I had only the one iPhone connected for this, since otherwise these will get very long. An important note though
+is that many of these fields are optional and not all of them are represented in this one response. For example
+I have an iPhone SE that presents an additional wireless interface and includes a UDID field.
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
