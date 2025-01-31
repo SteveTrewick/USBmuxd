@@ -67,11 +67,8 @@ func dumpXML(_ data: Data) {
 }
 
 socket.dataHandler = { result in
-  
   switch result {
-    
     case .failure(let fail): print(fail)
-    
     case .success(let data):
        
         print ( hex.dump(data) )
@@ -80,11 +77,8 @@ socket.dataHandler = { result in
 }
 
 parser.messageHandler = { result in
-  
   switch result {
-    
-      case .failure(let fail) : print(fail)
-    
+      case .failure(let fail)        : print(fail)
       case .success(let (tag, data)) :
         
         print(String(format:"%02x", tag))
@@ -105,6 +99,7 @@ RunLoop.current.run()
 ```
 
 # XML Request
+
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -115,3 +110,4 @@ RunLoop.current.run()
 </dict>
 </plist>
 ```
+
