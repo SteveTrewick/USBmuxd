@@ -99,10 +99,20 @@ To actually send that out on the wire we need to prepend a 16 byte header
 
 ```
 02 01 00 00 01 00 00 00 08 00 00 00 ef be ad de  ................
-
-
 3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31  <?xml.version="1
-...
+2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54  .0".encoding="UT
+46 2d 38 22 3f 3e 0a 3c 21 44 4f 43 54 59 50 45  F-8"?>.<!DOCTYPE
+20 70 6c 69 73 74 20 50 55 42 4c 49 43 20 22 2d  .plist.PUBLIC."-
+2f 2f 41 70 70 6c 65 2f 2f 44 54 44 20 50 4c 49  //Apple//DTD.PLI
+53 54 20 31 2e 30 2f 2f 45 4e 22 20 22 68 74 74  ST.1.0//EN"."htt
+70 3a 2f 2f 77 77 77 2e 61 70 70 6c 65 2e 63 6f  p://www.apple.co
+6d 2f 44 54 44 73 2f 50 72 6f 70 65 72 74 79 4c  m/DTDs/PropertyL
+69 73 74 2d 31 2e 30 2e 64 74 64 22 3e 0a 3c 70  ist-1.0.dtd">.<p
+6c 69 73 74 20 76 65 72 73 69 6f 6e 3d 22 31 2e  list.version="1.
+30 22 3e 0a 3c 64 69 63 74 3e 0a 09 3c 6b 65 79  0">.<dict>..<key
+3e 4d 65 73 73 61 67 65 54 79 70 65 3c 2f 6b 65  >MessageType</ke
+79 3e 0a 09 3c 73 74 72 69 6e 67 3e 4c 69 73 74  y>..<string>List
+44 65 76 69 63 65 73 3c 2f 73 74 72 69 6e 67 3e  Devices</string>
 0a 3c 2f 64 69 63 74 3e 0a 3c 2f 70 6c 69 73 74  .</dict>.</plist
 3e 0a                                            >.
 ```
@@ -143,10 +153,57 @@ In return we get a similar packet indicating 847 total bytes and including our t
 
 ```
 4f 03 00 00 01 00 00 00 08 00 00 00 ef be ad de  O...............
-
 3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31  <?xml.version="1
 2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54  .0".encoding="UT
-...
+46 2d 38 22 3f 3e 0a 3c 21 44 4f 43 54 59 50 45  F-8"?>.<!DOCTYPE
+20 70 6c 69 73 74 20 50 55 42 4c 49 43 20 22 2d  .plist.PUBLIC."-
+2f 2f 41 70 70 6c 65 2f 2f 44 54 44 20 50 4c 49  //Apple//DTD.PLI
+53 54 20 31 2e 30 2f 2f 45 4e 22 20 22 68 74 74  ST.1.0//EN"."htt
+70 3a 2f 2f 77 77 77 2e 61 70 70 6c 65 2e 63 6f  p://www.apple.co
+6d 2f 44 54 44 73 2f 50 72 6f 70 65 72 74 79 4c  m/DTDs/PropertyL
+69 73 74 2d 31 2e 30 2e 64 74 64 22 3e 0a 3c 70  ist-1.0.dtd">.<p
+6c 69 73 74 20 76 65 72 73 69 6f 6e 3d 22 31 2e  list.version="1.
+30 22 3e 0a 3c 64 69 63 74 3e 0a 09 3c 6b 65 79  0">.<dict>..<key
+3e 44 65 76 69 63 65 4c 69 73 74 3c 2f 6b 65 79  >DeviceList</key
+3e 0a 09 3c 61 72 72 61 79 3e 0a 09 09 3c 64 69  >..<array>...<di
+63 74 3e 0a 09 09 09 3c 6b 65 79 3e 44 65 76 69  ct>....<key>Devi
+63 65 49 44 3c 2f 6b 65 79 3e 0a 09 09 09 3c 69  ceID</key>....<i
+6e 74 65 67 65 72 3e 33 38 3c 2f 69 6e 74 65 67  nteger>38</integ
+65 72 3e 0a 09 09 09 3c 6b 65 79 3e 4d 65 73 73  er>....<key>Mess
+61 67 65 54 79 70 65 3c 2f 6b 65 79 3e 0a 09 09  ageType</key>...
+09 3c 73 74 72 69 6e 67 3e 41 74 74 61 63 68 65  .<string>Attache
+64 3c 2f 73 74 72 69 6e 67 3e 0a 09 09 09 3c 6b  d</string>....<k
+65 79 3e 50 72 6f 70 65 72 74 69 65 73 3c 2f 6b  ey>Properties</k
+65 79 3e 0a 09 09 09 3c 64 69 63 74 3e 0a 09 09  ey>....<dict>...
+09 09 3c 6b 65 79 3e 43 6f 6e 6e 65 63 74 69 6f  ..<key>Connectio
+6e 53 70 65 65 64 3c 2f 6b 65 79 3e 0a 09 09 09  nSpeed</key>....
+09 3c 69 6e 74 65 67 65 72 3e 34 38 30 30 30 30  .<integer>480000
+30 30 30 3c 2f 69 6e 74 65 67 65 72 3e 0a 09 09  000</integer>...
+09 09 3c 6b 65 79 3e 43 6f 6e 6e 65 63 74 69 6f  ..<key>Connectio
+6e 54 79 70 65 3c 2f 6b 65 79 3e 0a 09 09 09 09  nType</key>.....
+3c 73 74 72 69 6e 67 3e 55 53 42 3c 2f 73 74 72  <string>USB</str
+69 6e 67 3e 0a 09 09 09 09 3c 6b 65 79 3e 44 65  ing>.....<key>De
+76 69 63 65 49 44 3c 2f 6b 65 79 3e 0a 09 09 09  viceID</key>....
+09 3c 69 6e 74 65 67 65 72 3e 33 38 3c 2f 69 6e  .<integer>38</in
+74 65 67 65 72 3e 0a 09 09 09 09 3c 6b 65 79 3e  teger>.....<key>
+4c 6f 63 61 74 69 6f 6e 49 44 3c 2f 6b 65 79 3e  LocationID</key>
+0a 09 09 09 09 3c 69 6e 74 65 67 65 72 3e 33 33  .....<integer>33
+37 36 34 31 34 37 32 3c 2f 69 6e 74 65 67 65 72  7641472</integer
+3e 0a 09 09 09 09 3c 6b 65 79 3e 50 72 6f 64 75  >.....<key>Produ
+63 74 49 44 3c 2f 6b 65 79 3e 0a 09 09 09 09 3c  ctID</key>.....<
+69 6e 74 65 67 65 72 3e 34 37 37 36 3c 2f 69 6e  integer>4776</in
+74 65 67 65 72 3e 0a 09 09 09 09 3c 6b 65 79 3e  teger>.....<key>
+53 65 72 69 61 6c 4e 75 6d 62 65 72 3c 2f 6b 65  SerialNumber</ke
+79 3e 0a 09 09 09 09 3c 73 74 72 69 6e 67 3e 30  y>.....<string>0
+30 30 30 38 31 32 30 2d 30 30 30 36 36 39 36 30  0008120-00066960
+32 36 41 32 32 30 31 45 3c 2f 73 74 72 69 6e 67  26A2201E</string
+3e 0a 09 09 09 09 3c 6b 65 79 3e 55 53 42 53 65  >.....<key>USBSe
+72 69 61 6c 4e 75 6d 62 65 72 3c 2f 6b 65 79 3e  rialNumber</key>
+0a 09 09 09 09 3c 73 74 72 69 6e 67 3e 30 30 30  .....<string>000
+30 38 31 32 30 30 30 30 36 36 39 36 30 32 36 41  081200006696026A
+32 32 30 31 45 3c 2f 73 74 72 69 6e 67 3e 0a 09  2201E</string>..
+09 09 3c 2f 64 69 63 74 3e 0a 09 09 3c 2f 64 69  ..</dict>...</di
+63 74 3e 0a 09 3c 2f 61 72 72 61 79 3e 0a 3c 2f  ct>..</array>.</
 64 69 63 74 3e 0a 3c 2f 70 6c 69 73 74 3e 0a     dict>.</plist>.
 ```
 
