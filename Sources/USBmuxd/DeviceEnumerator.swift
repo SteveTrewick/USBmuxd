@@ -117,7 +117,6 @@ class EnumLockdQuery : EnumeratorState {
   var machine     : DeviceEnumerator
   var lockdSocket : GCDSocketClient<sockaddr_un>!
   var parser      = PListParser(header: .muxd )
-  let lockdParser = PListParser(header: .lockd)
   let router      = ResponseRouter()
   
   required init (_ machine: DeviceEnumerator ) {
@@ -161,17 +160,16 @@ class EnumLockdQuery : EnumeratorState {
       //print(result)
       if let result = result as? MuxResult, result.number == 0 {
         
-        lockdParser.messageHandler = parser.messageHandler
-        parser = lockdParser
+        parser.setHeader(type: .lockd)
         
         router.expect(tag: 0, response: .lockdResponse) { response in
-          // we never get ere
-          //print(response)
+
           if let response = response as? LockdownResponse {
             machine.devices += [ DeviceEnumerator.DeviceDescriptor (
               device: machine.candidates[machine.candidate],
               name  : response.value
             )]
+            
             machine.candidate += 1
             lockdSocket.dataHandler = nil
             lockdSocket.close()

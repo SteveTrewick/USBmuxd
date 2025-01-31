@@ -61,6 +61,14 @@ public class PListParser  {
     self.state  = ReadHeader(self)
   }
   
+  // weirdly, switching this halts everything! Why?
+  public func setHeader(type: HeaderType) {
+    switch type {
+      case .lockd: self.reader = LockdownHeaderReader()
+      case .muxd : self.reader = USBMuxHeaderReader()
+    }
+  }
+  
   /*
     every time data come in from the usbmuxd socket we process it through here
     it gets added to the buffer and then we execute the current state which will
