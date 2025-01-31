@@ -18,6 +18,10 @@ talking to lockdownd. Well maintained featureful projects are
 * Cross Platform C : https://libimobiledevice.org
 * Swift : https://github.com/jensmeder/DarkLightning
 
+## Example - 
+
+## Example - 
+
 
 ## Protocols
 
@@ -26,7 +30,7 @@ Information Property Lists or PList for short. These are practically ubiquitous 
 
 There was a time when usbmuxd used a binary protocol but as of the moment, if you try to use it 
 muxd on macOS will throw a huff and disconnect you.  On the one hand chucking XML requests around
-feels very 90s, but on the other, we can read XML with our eyes which makes figuring what's going on 
+feels very 90s enterprisey, but on the other, we can read XML with our eyes which makes figuring what's going on 
 in packet traces much easier.
 
 I started out with nformation from the [Apple Wiki](https://theapplewiki.com/wiki/Usbmux) ([Archive](https://archive.is/6Mu0D))
@@ -74,7 +78,9 @@ RunLoop.current.run() //4eva
 
 ```
 
-# XML Request
+## XML Request
+
+The XML we just generated looks like this, pretty noisy TBH.
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -86,4 +92,48 @@ RunLoop.current.run() //4eva
 </dict>
 </plist>
 ```
+
+## Data Packet
+
+To actually send that out on the wire we need to prepend a 16 byte header
+
+```
+02 01 00 00 01 00 00 00 08 00 00 00 ef be ad de  ................
+
+
+3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31  <?xml.version="1
+...
+0a 3c 2f 64 69 63 74 3e 0a 3c 2f 70 6c 69 73 74  .</dict>.</plist
+3e 0a                                            >.
+```
+
+## USBmuxd Header
+
+The header is defined thusly, in fact, exactly thusly as there is a C target in Sources/USBMuxdHeader
+which defines exactly this struct. We have 4 x 4 byte fields, usbmuxd uses little endian. Lockdownd, does not.
+
+```c
+ typedef struct {
+   uint32_t length;   // 16 + plist payload length
+   uint32_t version;  // this is the version and it should be 1
+   uint32_t type;     // message format, PList == 8
+   uint32_t tag;      // response tag, this will only happen in OK/NOK messages
+ }
+ __attribute__((packed)) USBMuxdHeader;
+```
+
+From our actual header above we can see the following values 
+
+```c
+length  = 0x00000102 // 258
+version = 0x00000001
+type    = 0x00000008
+tag     = 0xdeadbeef
+```
+
+Usbmuxd includes the 16 byte length of the header in the length field so our 242 bytes of XML
+gives us 258. Version and type fields will always (until they aren't) be set to 1 and 8 respectively.
+The tag field allows us to distinguish which of our requests usbmuxd is responding to. We add it
+to our request and the response will carry the same tag. Note however that if we issue a 'Listen' request
+the notifications we recieve will always have tag == 0. 
 
