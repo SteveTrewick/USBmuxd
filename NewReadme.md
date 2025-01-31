@@ -18,9 +18,81 @@ talking to lockdownd. Well maintained featureful projects are
 * Cross Platform C : https://libimobiledevice.org
 * Swift : https://github.com/jensmeder/DarkLightning
 
-## Example - 
 
-## Example - 
+## Dependencies 
+
+USBmuxd has a dependency on [GCDSocket](https://github.com/SteveTrewick/GCDSocket)
+
+
+## Installation
+
+XCode:  https://github.com/SteveTrewick/USBmuxd up to next major.
+SPM  : .package(name: "USBmuxd", url: "https://github.com/SteveTrewick/USBmuxd", from: "1.0.0")
+
+
+
+## Example - Enumerate Connected Devices 
+
+DeviceEnumerator also connects to lockdownd on connected devices and retrieves the device name.
+
+```swift
+
+import Foundation
+import USBmuxd
+
+
+let enumerator = DeviceEnumerator()
+
+enumerator.enumerateDevices { result  in
+
+  switch result {
+
+    case .failure(let fail)        : main.async { print(fail) }
+
+    case .success(let descriptors) : main.async {
+
+      // show only USB connected devices
+      // avoiding any wireless sync type stubs that might show up
+      
+      for descriptor in descriptors {
+        if descriptor.device.properties.connectionType == "USB" {
+          print(descriptor)
+        }
+      }
+    }
+  }
+}
+RunLoop.current.run() //4eva
+```
+
+## Example - Notify Connect/Disconnect
+
+```swift
+
+import Foundation
+import USBmuxd
+
+var notification = USBmuxd.NotificationListener()
+
+notification.notify = { result in
+  switch result {
+    case .failure(let fail)   : print(fail)
+    case .success(let notify) :
+      switch notify {
+        case .detach(let id)     : print("DETACHED :\(id)")
+        case .attach(let device) : print("ATTACHED : \(device)")
+      }
+  }
+}
+notification.connect()
+
+RunLoop.current.run() //4eva
+```
+
+
+## Connect To TCP Service On Device
+
+
 
 
 ## Protocols
