@@ -7,7 +7,7 @@ public struct NotificationListener {
   
   public enum Notification {
     case attach(Device)
-    case detatch(Int)
+    case detach(Int)
   }
   
   public enum NOK : Error {
@@ -50,7 +50,7 @@ public struct NotificationListener {
             }
           
             if let detach = try? decoder.decode(MuxDetatch.self, from: data) {
-              notify? ( .success(.detatch(detach.deviceID)) )
+              notify? ( .success(.detach(detach.deviceID)) )
               return
             }
           
