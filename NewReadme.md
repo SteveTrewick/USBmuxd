@@ -328,7 +328,7 @@ In this case, we're all good. usbmuxd will now send us notifications.
 
 ## Notification Data Packets - Connected Devices
 
-Look like this, note the lack of a tag? All notifications from here on in will have tag == 0
+Note the lack of a tag? All notifications from here on in will have tag == 0
 
 ```
 e8 02 00 00 01 00 00 00 08 00 00 00 00 00 00 00  ................
