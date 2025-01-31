@@ -76,7 +76,10 @@ the existing code base, so I'm going to start tagging releases.
 
 See also the issues tab.
 
+## Errors
 
+Before we start, it is probably worth mentioning that if you make an error in a message to either 
+usbmuxd or lockdownd they may or may not send a response and they will close the socket connection.  
 
 ## Examples
 
@@ -423,4 +426,9 @@ socket.write(data: message.muxd(msg: Connect(device: 1, port: 62078), tag: 0xdea
   
 // run 4eva
 RunLoop.current.run()
+
+/*
+MuxResult(messageType: "Result", number: 0)
+LockdownResponse(key: "DeviceName", request: "GetValue", value: "iPhone")
+*/
 ```
