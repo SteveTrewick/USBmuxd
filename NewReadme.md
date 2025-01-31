@@ -266,4 +266,190 @@ Using the exact same as bove, we send a "Listen" message, usbmuxd will now do se
 2. Send us a message for every device that is currently connected.
 3. Send us a message every time a device is connected or disconnected.
 
+## Listen XML Message
 
+We wont do the full packet trace for this one, here's the XML.
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>MessageType</key>
+  <string>Listen</string>
+</dict>
+</plist>
+```
+
+## Listen Response Data Packet
+
+Here is the response, note that this one has our tag in it.
+
+```
+26 01 00 00 01 00 00 00 08 00 00 00 ef be ad de  &...............
+3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31  <?xml.version="1
+2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54  .0".encoding="UT
+46 2d 38 22 3f 3e 0a 3c 21 44 4f 43 54 59 50 45  F-8"?>.<!DOCTYPE
+20 70 6c 69 73 74 20 50 55 42 4c 49 43 20 22 2d  .plist.PUBLIC."-
+2f 2f 41 70 70 6c 65 2f 2f 44 54 44 20 50 4c 49  //Apple//DTD.PLI
+53 54 20 31 2e 30 2f 2f 45 4e 22 20 22 68 74 74  ST.1.0//EN"."htt
+70 3a 2f 2f 77 77 77 2e 61 70 70 6c 65 2e 63 6f  p://www.apple.co
+6d 2f 44 54 44 73 2f 50 72 6f 70 65 72 74 79 4c  m/DTDs/PropertyL
+69 73 74 2d 31 2e 30 2e 64 74 64 22 3e 0a 3c 70  ist-1.0.dtd">.<p
+6c 69 73 74 20 76 65 72 73 69 6f 6e 3d 22 31 2e  list.version="1.
+30 22 3e 0a 3c 64 69 63 74 3e 0a 09 3c 6b 65 79  0">.<dict>..<key
+3e 4d 65 73 73 61 67 65 54 79 70 65 3c 2f 6b 65  >MessageType</ke
+79 3e 0a 09 3c 73 74 72 69 6e 67 3e 52 65 73 75  y>..<string>Resu
+6c 74 3c 2f 73 74 72 69 6e 67 3e 0a 09 3c 6b 65  lt</string>..<ke
+79 3e 4e 75 6d 62 65 72 3c 2f 6b 65 79 3e 0a 09  y>Number</key>..
+3c 69 6e 74 65 67 65 72 3e 30 3c 2f 69 6e 74 65  <integer>0</inte
+67 65 72 3e 0a 3c 2f 64 69 63 74 3e 0a 3c 2f 70  ger>.</dict>.</p
+6c 69 73 74 3e 0a                                list>.
+```
+
+## XML Response
+
+When we extract the XML (or our actual representation) we see that this time, we have a result with a number
+attached. In a familar pattern, if this number is non zero it indicates an error. Error codes are described below.
+In this case, we're all good. usbmuxd will now send us notifications.
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>MessageType</key>
+  <string>Result</string>
+  <key>Number</key>
+  <integer>0</integer>
+</dict>
+</plist>
+```
+
+## Notification Data Packets - Connected Devices
+
+Look like this, note the lack of a tag? All notifications from here on in will have tag == 0
+
+```
+e8 02 00 00 01 00 00 00 08 00 00 00 00 00 00 00  ................
+3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31  <?xml.version="1
+2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54  .0".encoding="UT
+46 2d 38 22 3f 3e 0a 3c 21 44 4f 43 54 59 50 45  F-8"?>.<!DOCTYPE
+20 70 6c 69 73 74 20 50 55 42 4c 49 43 20 22 2d  .plist.PUBLIC."-
+2f 2f 41 70 70 6c 65 2f 2f 44 54 44 20 50 4c 49  //Apple//DTD.PLI
+53 54 20 31 2e 30 2f 2f 45 4e 22 20 22 68 74 74  ST.1.0//EN"."htt
+70 3a 2f 2f 77 77 77 2e 61 70 70 6c 65 2e 63 6f  p://www.apple.co
+6d 2f 44 54 44 73 2f 50 72 6f 70 65 72 74 79 4c  m/DTDs/PropertyL
+69 73 74 2d 31 2e 30 2e 64 74 64 22 3e 0a 3c 70  ist-1.0.dtd">.<p
+6c 69 73 74 20 76 65 72 73 69 6f 6e 3d 22 31 2e  list.version="1.
+30 22 3e 0a 3c 64 69 63 74 3e 0a 09 3c 6b 65 79  0">.<dict>..<key
+3e 44 65 76 69 63 65 49 44 3c 2f 6b 65 79 3e 0a  >DeviceID</key>.
+09 3c 69 6e 74 65 67 65 72 3e 33 38 3c 2f 69 6e  .<integer>38</in
+74 65 67 65 72 3e 0a 09 3c 6b 65 79 3e 4d 65 73  teger>..<key>Mes
+73 61 67 65 54 79 70 65 3c 2f 6b 65 79 3e 0a 09  sageType</key>..
+3c 73 74 72 69 6e 67 3e 41 74 74 61 63 68 65 64  <string>Attached
+3c 2f 73 74 72 69 6e 67 3e 0a 09 3c 6b 65 79 3e  </string>..<key>
+50 72 6f 70 65 72 74 69 65 73 3c 2f 6b 65 79 3e  Properties</key>
+0a 09 3c 64 69 63 74 3e 0a 09 09 3c 6b 65 79 3e  ..<dict>...<key>
+43 6f 6e 6e 65 63 74 69 6f 6e 53 70 65 65 64 3c  ConnectionSpeed<
+2f 6b 65 79 3e 0a 09 09 3c 69 6e 74 65 67 65 72  /key>...<integer
+3e 34 38 30 30 30 30 30 30 30 3c 2f 69 6e 74 65  >480000000</inte
+67 65 72 3e 0a 09 09 3c 6b 65 79 3e 43 6f 6e 6e  ger>...<key>Conn
+65 63 74 69 6f 6e 54 79 70 65 3c 2f 6b 65 79 3e  ectionType</key>
+0a 09 09 3c 73 74 72 69 6e 67 3e 55 53 42 3c 2f  ...<string>USB</
+73 74 72 69 6e 67 3e 0a 09 09 3c 6b 65 79 3e 44  string>...<key>D
+65 76 69 63 65 49 44 3c 2f 6b 65 79 3e 0a 09 09  eviceID</key>...
+3c 69 6e 74 65 67 65 72 3e 33 38 3c 2f 69 6e 74  <integer>38</int
+65 67 65 72 3e 0a 09 09 3c 6b 65 79 3e 4c 6f 63  eger>...<key>Loc
+61 74 69 6f 6e 49 44 3c 2f 6b 65 79 3e 0a 09 09  ationID</key>...
+3c 69 6e 74 65 67 65 72 3e 33 33 37 36 34 31 34  <integer>3376414
+37 32 3c 2f 69 6e 74 65 67 65 72 3e 0a 09 09 3c  72</integer>...<
+6b 65 79 3e 50 72 6f 64 75 63 74 49 44 3c 2f 6b  key>ProductID</k
+65 79 3e 0a 09 09 3c 69 6e 74 65 67 65 72 3e 34  ey>...<integer>4
+37 37 36 3c 2f 69 6e 74 65 67 65 72 3e 0a 09 09  776</integer>...
+3c 6b 65 79 3e 53 65 72 69 61 6c 4e 75 6d 62 65  <key>SerialNumbe
+72 3c 2f 6b 65 79 3e 0a 09 09 3c 73 74 72 69 6e  r</key>...<strin
+67 3e 30 30 30 30 38 31 32 30 2d 30 30 30 36 36  g>00008120-00066
+39 36 30 32 36 41 32 32 30 31 45 3c 2f 73 74 72  96026A2201E</str
+69 6e 67 3e 0a 09 09 3c 6b 65 79 3e 55 53 42 53  ing>...<key>USBS
+65 72 69 61 6c 4e 75 6d 62 65 72 3c 2f 6b 65 79  erialNumber</key
+3e 0a 09 09 3c 73 74 72 69 6e 67 3e 30 30 30 30  >...<string>0000
+38 31 32 30 30 30 30 36 36 39 36 30 32 36 41 32  81200006696026A2
+32 30 31 45 3c 2f 73 74 72 69 6e 67 3e 0a 09 3c  201E</string>..<
+2f 64 69 63 74 3e 0a 3c 2f 64 69 63 74 3e 0a 3c  /dict>.</dict>.<
+2f 70 6c 69 73 74 3e 0a                          /plist>.
+```
+
+## Notification XML - Connected Devices
+
+We will receive one of these for each device currently connected.
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>DeviceID</key>
+  <integer>38</integer>
+  <key>MessageType</key>
+  <string>Attached</string>
+  <key>Properties</key>
+  <dict>
+    <key>ConnectionSpeed</key>
+    <integer>480000000</integer>
+    <key>ConnectionType</key>
+    <string>USB</string>
+    <key>DeviceID</key>
+    <integer>38</integer>
+    <key>LocationID</key>
+    <integer>337641472</integer>
+    <key>ProductID</key>
+    <integer>4776</integer>
+    <key>SerialNumber</key>
+    <string>00008120-0006696026A2201E</string>
+    <key>USBSerialNumber</key>
+    <string>000081200006696026A2201E</string>
+  </dict>
+</dict>
+</plist>
+```
+
+## Notification XML - Disonnected Devices
+
+OK, let's unplug something and see what we get.
+
+```
+2b 01 00 00 01 00 00 00 08 00 00 00 00 00 00 00  +...............
+3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31  <?xml.version="1
+2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54  .0".encoding="UT
+46 2d 38 22 3f 3e 0a 3c 21 44 4f 43 54 59 50 45  F-8"?>.<!DOCTYPE
+20 70 6c 69 73 74 20 50 55 42 4c 49 43 20 22 2d  .plist.PUBLIC."-
+2f 2f 41 70 70 6c 65 2f 2f 44 54 44 20 50 4c 49  //Apple//DTD.PLI
+53 54 20 31 2e 30 2f 2f 45 4e 22 20 22 68 74 74  ST.1.0//EN"."htt
+70 3a 2f 2f 77 77 77 2e 61 70 70 6c 65 2e 63 6f  p://www.apple.co
+6d 2f 44 54 44 73 2f 50 72 6f 70 65 72 74 79 4c  m/DTDs/PropertyL
+69 73 74 2d 31 2e 30 2e 64 74 64 22 3e 0a 3c 70  ist-1.0.dtd">.<p
+6c 69 73 74 20 76 65 72 73 69 6f 6e 3d 22 31 2e  list.version="1.
+30 22 3e 0a 3c 64 69 63 74 3e 0a 09 3c 6b 65 79  0">.<dict>..<key
+3e 44 65 76 69 63 65 49 44 3c 2f 6b 65 79 3e 0a  >DeviceID</key>.
+09 3c 69 6e 74 65 67 65 72 3e 33 38 3c 2f 69 6e  .<integer>38</in
+74 65 67 65 72 3e 0a 09 3c 6b 65 79 3e 4d 65 73  teger>..<key>Mes
+73 61 67 65 54 79 70 65 3c 2f 6b 65 79 3e 0a 09  sageType</key>..
+3c 73 74 72 69 6e 67 3e 44 65 74 61 63 68 65 64  <string>Detached
+3c 2f 73 74 72 69 6e 67 3e 0a 3c 2f 64 69 63 74  </string>.</dict
+3e 0a 3c 2f 70 6c 69 73 74 3e 0a                 >.</plist>.
+```
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>DeviceID</key>
+  <integer>38</integer>
+  <key>MessageType</key>
+  <string>Detached</string>
+</dict>
+</plist>
+
+```
