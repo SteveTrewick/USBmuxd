@@ -17,7 +17,7 @@ public struct NotificationListener {
   public init() {}
   
   var socket : GCDSocketClient<sockaddr_un>!
-  public var notify : ((Result<Notification, Error>) -> Void)? = nil
+  public var notify : ((Swift.Result<Notification, Error>) -> Void)? = nil
   
   let decoder   = PropertyListDecoder()
   let construct = GCDSocketConstructor()

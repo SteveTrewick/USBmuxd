@@ -4,15 +4,15 @@
 import PackageDescription
 
 let package = Package(
-    name: "USBmuxdCore",
-    products: [ .library( name: "USBmuxdCore", targets: ["USBmuxdCore"] ), ],
+    name: "USBmuxd",
+    products: [ .library( name: "USBmuxd", targets: ["USBmuxd"] ), ],
     dependencies: [ ],
     targets: [
        
       .target(
-          name: "USBmuxdCore",
+          name: "USBmuxd",
           dependencies: ["USBMuxdHeader"],
-          path: "Sources/USBmuxdCore"
+          path: "Sources/USBmuxd"
       ),
       
       .target(
