@@ -245,8 +245,11 @@ var notification = USBmuxd.NotificationListener()
 
 notification.notify = { result in
   switch result {
+    
     case .failure(let fail)   : print(fail)
+    
     case .success(let notify) :
+      
       switch notify {
         case .detach(let id)     : print("DETACHED :\(id)")
         case .attach(let device) : print("ATTACHED : \(device)")
