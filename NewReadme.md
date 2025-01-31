@@ -26,8 +26,8 @@ USBmuxd has a dependency on [GCDSocket](https://github.com/SteveTrewick/GCDSocke
 
 ## Installation
 
-XCode:  https://github.com/SteveTrewick/USBmuxd up to next major.
-SPM  : .package(name: "USBmuxd", url: "https://github.com/SteveTrewick/USBmuxd", from: "1.0.0")
+* XCode:  https://github.com/SteveTrewick/USBmuxd up to next major.
+* SPM  : .package(name: "USBmuxd", url: "https://github.com/SteveTrewick/USBmuxd", from: "1.0.0")
 
 
 
