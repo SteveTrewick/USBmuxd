@@ -127,7 +127,7 @@ return `Data`. The `[String: Any]` versions of the call return optionals, the `C
 All of the exiisting Codable message types have been tested to make sure they do, in fact, encode and decode
 so they should be fine, but if you feed it arbitrary stuff it will eventually crash when it doesn't like something.
 
-There are two functions for muxd and two for lockd.
+There are two functions for muxd and two for lockd. All usbmuxd messages require a tag, lockd does not use them.
 
 
 ```swift
@@ -157,6 +157,9 @@ let lockdNameC = message.lockd(msg: lockdQueryC)
 
 
 ``` 
+
+The current collection of Codable messages can be found in Messages.swift
+
 ### PListParser
 
 PListParser is a stateful parser. Since both usbmuxd and lockd occasionally send partial or multiple
@@ -187,12 +190,109 @@ parser.messageHandler = { result in
 
 ### ResponseRouter
 
-```swift
+The response router is used to set up a response to a request that we are about to send. It takes
+a tag and a closure (typed `(Any?) -> Void`) to operate on the response.
 
+Response router handles the following possible response type and will decode `[Device]`, 
+`MuxResult`, `Device` and `LockdownResponse` respectively.
+
+```swift
+public enum ResponseType {
+  case deviceList, result, device, lockdResponse
+}
 ```
+
+An example of using reponse router is given below.
+
 
 ## Connecting To TCP Services - Getting Device Name From Lockdown Daemon
 
+Putting it all together this is how we would connect to a known device ID (in this case 1)
+and retrieve a device name from the lockdown TCP service running on port 62078.
+
+Here we set up our socket to hand data off to our parser and then hook the parser output up to the router. 
+We then prime the router to exepct a result. Like this ...
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>MessageType</key>
+  <string>Result</string>
+  <key>Number</key>
+  <integer>0</integer>
+</dict>
+</plist>
+```  
+
+... which we map to a MuxResult(messageType: "Result", number: 0), assuming it is in fact 0. More on 
+protocol later.
+
+Assuming this works, we then swap our parser over to read lockd messages and prime the router
+to expect a LockDownResponse before sending our lockd request.
+
+Finally, back at the bottom of the pyramid we send our connect request.
+
+
+
+
+```swift
+
+import GCDSocket
+import USBmuxd
+
+let construct = GCDSocketConstructor()
+let socket    = construct.domainSocketClient(path: "/var/run/usbmuxd")
+let parser    = USBmuxd.PListParser(header: .muxd)
+let message   = USBmuxd.MessageBuilder()
+let router    = USBmuxd.ResponseRouter()
+
+socket.dataHandler = { result in
+  switch result {
+    case .failure(let fail): print (fail)
+    case .success(let data): parser.process(data: data)
+  }
+}
+
+parser.messageHandler = { result in
+  switch result {
+    case .failure(let fail)        : print (fail)
+    case .success(let (tag, data)) : router.route(tag: tag, data: data)
+  }
+}
+
+router.expect(tag: 0xdeadbeef, response: .result) { result in
+  
+  if let result = result as? MuxResult {
+    
+    print(result)
+    
+    if result.number == 0 {
+      
+      parser.setHeader(type: .lockd)
+      
+      router.expect(tag: 0, response: .lockdResponse) { response in
+        if let response = response as? LockdownResponse {
+          print(response)
+        }
+      }
+      socket.write(data: message.lockd(msg: LockdownRequest(key: "DeviceName", request: "GetValue")))
+    }
+  }
+}
+socket.connect()
+socket.write(data: message.muxd(msg: Connect(device: 1, port: 62078), tag: 0xdeadbeef))
+  
+// run 4eva
+RunLoop.current.run()
+
+/*
+MuxResult(messageType: "Result", number: 0)
+LockdownResponse(key: "DeviceName", request: "GetValue", value: "iPhone")
+*/
+
+```
 
 
 
