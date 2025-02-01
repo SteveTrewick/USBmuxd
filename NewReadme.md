@@ -106,6 +106,14 @@ ATTACHED : Device(deviceID: 1, messageType: "Attached", properties: USBmuxd.Devi
 */
 ```
 
+## Architecture Aside
+
+By now you are looking at this and saying "oh, it's all closures, we're gettng doom pyramids!" and you are right.
+Unfortunately I am stranded back in time on XCode 13.2 where async/await only works sometimes. This is
+annoying because it worked fine in the beta of the same vintage. Right now I don't have 2K bucks for a new machine
+so async/await will have to ... await until I figure out to make it work consistently or get 2K bucks for a new laptop.
+
+Anyhoo, onwards!
 
 ## Using The Toolkit
 
@@ -126,9 +134,13 @@ There are two functions for muxd and two for lockd.
 
 let message = USBmuxd.MessageBuilder()
 
+// usbmuxd 
+
 if let muxListenD = message.muxd ( dict: ["MessageType": "Listen"],         tag: 0xcafefeed) {  }
    let muxListenC = message.muxd ( msg : MuxMessage(messageType: "Listen"), tag: 0xfeedcafe)
 
+
+// lockd
 
 let lockdQueryD = [
   "Key"     : "DeviceName",
@@ -145,9 +157,41 @@ let lockdNameC = message.lockd(msg: lockdQueryC)
 
 
 ``` 
+### PListParser
 
+PListParser is a stateful parser. Since both usbmuxd and lockd occasionally send partial or multiple
+loads per socket call we need to put the pieces together or seperate them out. PListParser can parse
+both usbmuxd and lockd formatted messages and can switch between the two as necessary.  
 
-## Conecting To TCP Services - Getting Device Name From Lockdown Daemon
+We pipe data from our socket into the parse using the process(data:) method and when our parser
+has enough dta to form a complete message it calls its messageHandler closure.
+
+```swift
+
+let parser = USBmuxd.PListParser ( header: .muxd )
+
+socket.dataHandler = { result in
+  switch result {
+    case .failure(let fail): print(fail)
+    case .success(let data): parser.process ( data: data )
+  }
+}
+
+parser.messageHandler = { result in
+  switch result {
+      case .failure(let fail)        : print(fail)
+      case .success(let (tag, data)) : /* ... your code goes here ... */
+  }
+}
+```
+
+### ResponseRouter
+
+```swift
+
+```
+
+## Connecting To TCP Services - Getting Device Name From Lockdown Daemon
 
 
 
