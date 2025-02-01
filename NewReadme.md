@@ -820,6 +820,113 @@ enum muxd_result_codes : Int {
 ```
 
 
-## Protocol - lockdownd
+## Protocol - Lockdownd
 
+Just like usbmuxd lockdownd uses XML PLists, there are many of them and documenting them is out of scope
+for this project since we really just want a device name. Some are listed at https://theapplewiki.com/wiki/Usbmux
 
+## Lockdownd Header
+
+If we were to define the lockd header as a C struct like we did with usbmuxd, it would look like this.
+
+```c
+ typedef struct {
+   uint32_t length;   // plist payload length BUT BIG ENDIAN
+ }
+ __attribute__((packed)) USBMuxdHeader;
+```
+
+But since it's just that UInt32 there's really not much point.  The only thing to notice here
+is that the length 
+
+* Does not include the 4 byte header.
+* Is Big Endian.
+
+So a lockd header that looks like this `00 00 01 43` indicates that starting from the next byte
+there are 323 bytes of XML.
+
+## DeviceName GetValue Request XML
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Key</key>
+  <string>DeviceName</string>
+  <key>Request</key>
+  <string>GetValue</string>
+</dict>
+</plist>
+```
+
+## DeviceName GetValue Request Data Packet
+
+```
+00 00 01 18 3c 3f 78 6d 6c 20 76 65 72 73 69 6f  ....<?xml.versio
+6e 3d 22 31 2e 30 22 20 65 6e 63 6f 64 69 6e 67  n="1.0".encoding
+3d 22 55 54 46 2d 38 22 3f 3e 0a 3c 21 44 4f 43  ="UTF-8"?>.<!DOC
+54 59 50 45 20 70 6c 69 73 74 20 50 55 42 4c 49  TYPE.plist.PUBLI
+43 20 22 2d 2f 2f 41 70 70 6c 65 2f 2f 44 54 44  C."-//Apple//DTD
+20 50 4c 49 53 54 20 31 2e 30 2f 2f 45 4e 22 20  .PLIST.1.0//EN".
+22 68 74 74 70 3a 2f 2f 77 77 77 2e 61 70 70 6c  "http://www.appl
+65 2e 63 6f 6d 2f 44 54 44 73 2f 50 72 6f 70 65  e.com/DTDs/Prope
+72 74 79 4c 69 73 74 2d 31 2e 30 2e 64 74 64 22  rtyList-1.0.dtd"
+3e 0a 3c 70 6c 69 73 74 20 76 65 72 73 69 6f 6e  >.<plist.version
+3d 22 31 2e 30 22 3e 0a 3c 64 69 63 74 3e 0a 09  ="1.0">.<dict>..
+3c 6b 65 79 3e 4b 65 79 3c 2f 6b 65 79 3e 0a 09  <key>Key</key>..
+3c 73 74 72 69 6e 67 3e 44 65 76 69 63 65 4e 61  <string>DeviceNa
+6d 65 3c 2f 73 74 72 69 6e 67 3e 0a 09 3c 6b 65  me</string>..<ke
+79 3e 52 65 71 75 65 73 74 3c 2f 6b 65 79 3e 0a  y>Request</key>.
+09 3c 73 74 72 69 6e 67 3e 47 65 74 56 61 6c 75  .<string>GetValu
+65 3c 2f 73 74 72 69 6e 67 3e 0a 3c 2f 64 69 63  e</string>.</dic
+74 3e 0a 3c 2f 70 6c 69 73 74 3e 0a              t>.</plist>.
+```
+
+## DeviceName GetValue Response Data Packet
+
+This is also an example of lockd sending the header and the XML seperately
+Fortunately, PListParser handles it like a boss. 
+
+```
+00 00 01 43                                      ...C
+
+3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 22 31  <?xml.version="1
+2e 30 22 20 65 6e 63 6f 64 69 6e 67 3d 22 55 54  .0".encoding="UT
+46 2d 38 22 3f 3e 0a 3c 21 44 4f 43 54 59 50 45  F-8"?>.<!DOCTYPE
+20 70 6c 69 73 74 20 50 55 42 4c 49 43 20 22 2d  .plist.PUBLIC."-
+2f 2f 41 70 70 6c 65 2f 2f 44 54 44 20 50 4c 49  //Apple//DTD.PLI
+53 54 20 31 2e 30 2f 2f 45 4e 22 20 22 68 74 74  ST.1.0//EN"."htt
+70 3a 2f 2f 77 77 77 2e 61 70 70 6c 65 2e 63 6f  p://www.apple.co
+6d 2f 44 54 44 73 2f 50 72 6f 70 65 72 74 79 4c  m/DTDs/PropertyL
+69 73 74 2d 31 2e 30 2e 64 74 64 22 3e 0a 3c 70  ist-1.0.dtd">.<p
+6c 69 73 74 20 76 65 72 73 69 6f 6e 3d 22 31 2e  list.version="1.
+30 22 3e 0a 3c 64 69 63 74 3e 0a 09 3c 6b 65 79  0">.<dict>..<key
+3e 4b 65 79 3c 2f 6b 65 79 3e 0a 09 3c 73 74 72  >Key</key>..<str
+69 6e 67 3e 44 65 76 69 63 65 4e 61 6d 65 3c 2f  ing>DeviceName</
+73 74 72 69 6e 67 3e 0a 09 3c 6b 65 79 3e 52 65  string>..<key>Re
+71 75 65 73 74 3c 2f 6b 65 79 3e 0a 09 3c 73 74  quest</key>..<st
+72 69 6e 67 3e 47 65 74 56 61 6c 75 65 3c 2f 73  ring>GetValue</s
+74 72 69 6e 67 3e 0a 09 3c 6b 65 79 3e 56 61 6c  tring>..<key>Val
+75 65 3c 2f 6b 65 79 3e 0a 09 3c 73 74 72 69 6e  ue</key>..<strin
+67 3e 69 50 68 6f 6e 65 3c 2f 73 74 72 69 6e 67  g>iPhone</string
+3e 0a 3c 2f 64 69 63 74 3e 0a 3c 2f 70 6c 69 73  >.</dict>.</plis
+74 3e 0a                                         t>.
+```
+
+## DeviceName GetValue Response XML
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Key</key>
+  <string>DeviceName</string>
+  <key>Request</key>
+  <string>GetValue</string>
+  <key>Value</key>
+  <string>iPhone</string>
+</dict>
+</plist>
+```
