@@ -114,6 +114,32 @@ need to look at things in a more bare bones way using the bits of USBmuxd that a
 
 ### MessageBuilder
 
+MessageBuilder is used to construct messages (duh) it will take either a `[String : Any]` or a `Codable` and
+return `Data`. The `[String: Any]` versions of the call return optionals, the `Codable` variants do not.
+All of the exiisting Codable message types have been tested to make sure they do, in fact, encode and decode
+so they should be fine, but if you feed it arbitrary stuff it will eventually crash when it doesn't like something.
+
+There are two functions for muxd and two for lockd.
+
+```swift
+if let muxListenD = message.muxd ( dict: ["MessageType": "Listen"],         tag: 0xcafefeed) {  }
+   let muxListenC = message.muxd ( msg : MuxMessage(messageType: "Listen"), tag: 0xfeedcafe)
+
+
+let lockdQueryD = [
+  "Key"     : "DeviceName",
+  "Request" : "GetValue"
+]
+if let lockdNameD = message.lockd(dict: lockdQueryD) {  }
+
+
+let lockdQueryC = LockdownRequest (
+  key    : "DeviceName",
+  request: "GetValue"
+)
+let lockdNameC = message.lockd(msg: lockdQueryC)
+
+``` 
 
 
 ## Coonecting To TCP Services - Getting Device Name From Lockdown Daemon
@@ -121,7 +147,7 @@ need to look at things in a more bare bones way using the bits of USBmuxd that a
 
 
 
-## Protocols
+## Protocol - usbmuxd
 
 Both usbmuxd and lockdownd (hereafter, muxd and lockd) use an Apple XML format called 
 Information Property Lists or PList for short. These are practically ubiquitous on Apple platforms.
@@ -551,3 +577,7 @@ OK, let's unplug something and see what we get.
 </plist>
 
 ```
+
+## Protocol - lockdownd
+
+
