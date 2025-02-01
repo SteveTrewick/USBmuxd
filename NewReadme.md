@@ -206,7 +206,7 @@ public enum ResponseType {
 An example of using reponse router is given below.
 
 
-
+<br>
 
 ## Connecting To TCP Services - Getting Device Name From Lockdown Daemon
 
