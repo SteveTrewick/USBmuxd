@@ -299,7 +299,7 @@ LockdownResponse(key: "DeviceName", request: "GetValue", value: "iPhone")
 
 
 
-## Protocol - usbmuxd
+## Protocol - USBmuxd
 
 Both usbmuxd and lockdownd (hereafter, muxd and lockd) use an Apple XML format called 
 Information Property Lists or PList for short. These are practically ubiquitous on Apple platforms.
