@@ -833,7 +833,7 @@ If we were to define the lockd header as a C struct like we did with usbmuxd, it
  typedef struct {
    uint32_t length;   // plist payload length BUT BIG ENDIAN
  }
- __attribute__((packed)) USBMuxdHeader;
+ __attribute__((packed)) LockdHeader;
 ```
 
 But since it's just that UInt32 there's really not much point.  The only thing to notice here
