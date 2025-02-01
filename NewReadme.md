@@ -309,20 +309,26 @@ in packet traces much easier.
 I started out with nformation from the [Apple Wiki](https://theapplewiki.com/wiki/Usbmux) ([Archive](https://archive.is/6Mu0D))
 and from [This](https://jon-gabilondo-angulo-7635.medium.com/understanding-usbmux-and-the-ios-lockdown-service-7f2a1dfd07ae)
 Medium article ([Archive](https://archive.is/uLAyw)) but really to figure it out you're going to want to proxy 
-the domain socket and watch what's going on. You can do this with the neat socket tool socat
+the domain socket and watch what's going on. You can do this with the neat socket tool socat :
 
-```bash
+```
 $ sudo mv /var/run/usbmuxd /var/run/usbmuxd_real
-$ sudo socat -t100 -x -v UNIX-LISTEN:/var/run/usbmuxd,mode=777,reuseaddr,fork UNIX-CONNECT:/var/run/usbmux_real
-When you are done do not forget to:
+$ sudo socat -t100 -x -v unix-listen:/var/run/usbmuxd,mode=777,reuseaddr,fork unix-connect:/var/run/usbmux_real
+```
+
+This will give you both hex and text, TBH you might be better off dropping the -x and just looking at the PLists.
+When you are done, don;t forget to put this back!
+
+```
 $ sudo mv /var/run/usbmuxd_real /var/run/usbmuxd
 ```
+
 
 If you want to write your own you can have a look at the sample in [GCDSocket](https://github.com/SteveTrewick/GCDSocket?tab=readme-ov-file#intercepting-proxy-server)
 which USBmuxd depends upon, though a proper trace will require stateful connection tracking to detect, amongst other
 things, when a client has transitioned to connection to lockd or initiated an SSL connection.
 
-Anyway, lets have a look. We'll send a "ListDevices" message and look at the message and response
+Anyway, lets have a look. We'll send a "ListDevices" message and look at the message and response.
 
 ```swift
 
