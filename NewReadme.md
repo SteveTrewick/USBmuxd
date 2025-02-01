@@ -167,7 +167,8 @@ loads per socket call we need to put the pieces together or seperate them out. P
 both usbmuxd and lockd formatted messages and can switch between the two as necessary.  
 
 We pipe data from our socket into the parse using the process(data:) method and when our parser
-has enough dta to form a complete message it calls its messageHandler closure.
+has enough data to form a complete message it calls its messageHandler closure with a result type
+the success portion of which contains a UInt32 tag (always 0 for lockd) and a Data with the XML. 
 
 ```swift
 
@@ -203,6 +204,8 @@ public enum ResponseType {
 ```
 
 An example of using reponse router is given below.
+
+
 
 
 ## Connecting To TCP Services - Getting Device Name From Lockdown Daemon
