@@ -778,7 +778,7 @@ print( UInt16(39426).byteSwapped ) // 666
 
 Remember earlier our 0xdeadbeef tag was represented as `ef be ad de` that's Little Endian,
 the Least Significant Byte is 'first' reading from left to right. Big Endian is the other 
-way around, same as we would type read it so rather than storing 0x029a as `9a 02` the Big Endian
+way around, same as we would type or read it so rather than storing 0x029a as `9a 02` the Big Endian
 representation is actually `02 9a` or 39426 in our little endian world.
 
 The Connect message constructor takes care of this for you but if you are crafting manual messages,
