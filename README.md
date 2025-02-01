@@ -320,7 +320,7 @@ $ sudo socat -t100 -x -v unix-listen:/var/run/usbmuxd,mode=777,reuseaddr,fork un
 ```
 
 This will give you both hex and text, TBH you might be better off dropping the -x and just looking at the PLists.
-When you are done, don;t forget to put this back!
+When you are done, don't forget to put this back!
 
 ```
 $ sudo mv /var/run/usbmuxd_real /var/run/usbmuxd
