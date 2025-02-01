@@ -355,7 +355,7 @@ RunLoop.current.run() // 4eva
 
 ```
 
-## XML Request
+## ListDevices XML Request
 
 The XML we just generated looks like this, pretty noisy TBH.
 
@@ -370,7 +370,7 @@ The XML we just generated looks like this, pretty noisy TBH.
 </plist>
 ```
 
-## Request Data Packet
+## ListDevices Request Data Packet
 
 To actually send that out on the wire we need to prepend a 16 byte header
 
@@ -424,7 +424,7 @@ The tag field allows us to distinguish which of our requests usbmuxd is respondi
 to our request and the response will carry the same tag. Note however that if we issue a 'Listen' request
 the notifications we recieve will always have tag == 0. 
 
-## Response Data Packet
+## ListDevices Response Data Packet
 
 In return we get a similar packet indicating 847 total bytes (including the header) and including our tag.
 
@@ -484,7 +484,7 @@ In return we get a similar packet indicating 847 total bytes (including the head
 64 69 63 74 3e 0a 3c 2f 70 6c 69 73 74 3e 0a     dict>.</plist>.
 ```
 
-## Response XML
+## ListDevices Response XML
 
 In our XML resposne we get what swift would call a `[String : Any]` where the value for key DeviceList
 is a `[ [String: Any] ]`. Awesome. XML is fun! For reasons, macOS lacks the fancier XML parsing facilities
@@ -726,6 +726,90 @@ OK, let's unplug something and see what we get.
 </plist>
 
 ```
+
+## Connect XML Message
+
+Let's have a look at the connect message, we can generate one like this ...
+
+```swift
+let cmsg = message.muxd(msg: Connect(device: 1337, port: 666), tag: 0xdead)
+```
+And we get this
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>DeviceID</key>
+  <integer>1337</integer>
+  <key>MessageType</key>
+  <string>Connect</string>
+  <key>PortNumber</key>
+  <integer>39426</integer>
+</dict>
+</plist>
+
+```
+
+Hold up what? What is **_that_** doing there ?
+
+```xml
+  <key>PortNumber</key>
+  <integer>39426</integer>
+```
+
+We said 666 and we got 39426. This happens because the connect message uses Big Endian numbers
+so that 666 has been byteswapped.
+
+```swift
+print( UInt16(666  ).byteSwapped ) // 39426
+print( UInt16(39426).byteSwapped ) // 666
+```
+
+Remember earlier our 0xdeadbeef tag was represented as `ef be ad de` that's Little Endian,
+the Least Significant Byte is 'first' reading from left to right. Big Endian is the other 
+way around, same as we would type read it so rather than storing 0x029a as `9a 02` the Big Endian
+representation is actually `02 9a` or 39426 in our little endian world.
+
+The Connect message constructor takes care of this for you but if you are crafting manual messages,
+this is something to remember. 
+
+
+## Connect XML Response
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>MessageType</key>
+  <string>Result</string>
+  <key>Number</key>
+  <integer>0</integer>
+</dict>
+</plist>
+``` 
+
+## Result Codes
+
+This is a bit murky, but you can summon most of them yourself to check.
+
+```swift
+enum muxd_result_codes : Int {
+  case OK                 = 0
+  case Bad_Command        = 1   // malformed command, muxd does not understand you
+  case Bad_Device         = 2   // the device you are trying to connect to does not exist
+  case Connection_Refused = 3   // probably there is no service on the port you requested
+  
+  
+  case Bad_Message        = 4   // not seen in the wild, no one really
+  case Unknown_Error      = 5   // seems to know much about these
+  
+  case Bad_Version        = 6   // You have something other than 1 in the version field of your header
+}
+```
+
 
 ## Protocol - lockdownd
 
