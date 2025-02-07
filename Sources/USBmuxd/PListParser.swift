@@ -22,8 +22,14 @@ public enum MachineError : Error {
 
 
 public struct HeaderInfo {
+  
   public let dataLength : Int
   public let tag        : UInt32
+  
+  public init(dataLength: Int, tag: UInt32) {
+    self.dataLength = dataLength
+    self.tag        = tag
+  }
 }
 
 
