@@ -11,8 +11,8 @@ import USBMuxdHeader
 
 protocol MachineState {
   func execute()
-  var  machine : PListParser { get }
-  init ( _ machine: PListParser)
+  var  machine : Parser { get }
+  init ( _ machine: Parser)
 }
 
 
@@ -35,7 +35,7 @@ public struct HeaderInfo {
 
 
 
-public class PListParser  {
+public class Parser  {
   
     
   var buffer  : Data       =  Data()
@@ -47,33 +47,14 @@ public class PListParser  {
   
   public var messageHandler : ((Result < ( tag: UInt32, data: Data ), MachineError > ) -> Void)? = nil
   
-  
-  public enum HeaderType {
-    case lockd, muxd
-  }
-  
-  
-  
-  public init ( header type: HeaderType ) {
-    
-    func reader(for type: HeaderType) -> DataHeaderReader {
-      switch type {
-        case .muxd  : return USBMuxHeaderReader()
-        case .lockd : return LockdownHeaderReader()
-      }
-    }
-    
-    self.reader = reader(for: type)
+
+  public init ( reader: DataHeaderReader ) {
+    self.reader = reader
     self.state  = ReadHeader(self)
   }
   
-  // weirdly, switching this halts everything! Why?
-  public func setHeader(type: HeaderType) {
-    switch type {
-      case .lockd: self.reader = LockdownHeaderReader()
-      case .muxd : self.reader = USBMuxHeaderReader()
-    }
-  }
+  
+  
   
   /*
     every time data come in from the usbmuxd socket we process it through here
@@ -115,13 +96,43 @@ public class PListParser  {
 }
 
 
+
+public class PListParser : Parser {
+  
+  
+  public enum HeaderType {
+    case lockd, muxd
+  }
+  
+  public init ( header type: HeaderType ) {
+    
+    func reader(for type: HeaderType) -> DataHeaderReader {
+      switch type {
+        case .muxd  : return USBMuxHeaderReader()
+        case .lockd : return LockdownHeaderReader()
+      }
+    }
+    super.init(reader: reader(for: type))
+    self.state  = ReadHeader(self)
+  }
+  
+  // weirdly, switching this halts everything! Why?
+  public func setHeader(type: HeaderType) {
+    switch type {
+      case .lockd: self.reader = LockdownHeaderReader()
+      case .muxd : self.reader = USBMuxHeaderReader()
+    }
+  }
+}
+
+
 class Fail : MachineState {
   
   func execute() { }
   
-  var machine: PListParser
+  var machine: Parser
   
-  required init (_ machine: PListParser ) {
+  required init (_ machine: Parser ) {
     self.machine = machine
   }
   
@@ -130,9 +141,9 @@ class Fail : MachineState {
 
 class Reset : MachineState {
   
-  var machine: PListParser
+  var machine: Parser
   
-  required init ( _ machine: PListParser ) {
+  required init ( _ machine: Parser ) {
     self.machine = machine
   }
   
@@ -152,9 +163,9 @@ class Reset : MachineState {
 
 class ReadHeader : MachineState {
   
-  var machine: PListParser
+  var machine: Parser
   
-  required init ( _ machine: PListParser ) {
+  required init ( _ machine: Parser ) {
     self.machine = machine
   }
   
@@ -204,9 +215,9 @@ class ReadHeader : MachineState {
 
 class ReadPlist : MachineState {
   
-  var machine: PListParser
+  var machine: Parser
   
-  required init (_ machine: PListParser ) {
+  required init (_ machine: Parser ) {
     self.machine = machine
   }
   
