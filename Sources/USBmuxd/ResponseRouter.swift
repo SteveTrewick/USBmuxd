@@ -38,18 +38,24 @@ public class ResponseRouter {
     expecting[ tag ] = nil
   }
   
-
+  func dumpXML (_ data: Data ) -> String { String(data: data, encoding: .utf8) ?? "" }
+  
   public func route ( tag: UInt32, data: Data ) {
     
-    guard let response = expecting[ tag ] else { print("unexpected"); return } // oof
     
+    guard let response = expecting[ tag ] else {
+      print("unexpected \(tag) \n \(dumpXML(data))")
+      return
+    } // oof
+    
+    unexpect(tag: tag)
     switch response.type {
       case .deviceList    : response.handler ( extractDeviceList       (from: data) )
       case .device        : response.handler ( extractDevice           (from: data) )
       case .result        : response.handler ( extractResult           (from: data) )
       case .lockdResponse : response.handler ( extractLockdownResponse (from: data) )
     }
-    unexpect(tag: tag)
+    
   }
   
   
