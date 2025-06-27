@@ -29,16 +29,31 @@ public class DeviceEnumerator {
   var candidates  : [Device]           = []
   var candidate   : Int                = 0
   
-  var completion: ((Result<[DeviceDescriptor], Error>)->Void)? = nil
+  var completion: (([DeviceDescriptor])->Void)? = nil
+  
+  public var error : Error? = nil
   
   public init() {
     
   }
   
-  public func enumerateDevices(_ completion: @escaping (Result<[DeviceDescriptor], Error>)->Void ) {
+  public enum Options {
+    case all, usb
+  }
+  var option : Options = .all
+  
+  public func enumerateDevices(_ opts: Options, _ completion: @escaping ([DeviceDescriptor]) -> Void ) {
+    self.option     = opts
     self.completion = completion
     self.state      = EnumConnect(self)
     self.state.execute()
+  }
+  
+  func complete (_ result: Result<[DeviceDescriptor], Error>) {
+    switch result {
+      case .failure(let error): self.error = error; self.completion? ( [] )
+      case .success(let descs): self.completion? ( descs )
+    }
   }
   
   func transition(to state: EnumeratorState) {
@@ -63,14 +78,14 @@ class EnumConnect : EnumeratorState {
     machine.muxdSocket.dataHandler = { [self] result in
       //print(result)
       switch result {
-        case .failure(let fail): machine.completion? (.failure(fail) )
+        case .failure(let fail): machine.complete (.failure(fail) )
         case .success(let data): machine.parser.process(data: data)
       }
     }
     machine.parser.messageHandler = { [self] result in
       //print(result)
       switch result {
-        case .failure (let fail)        : machine.completion? (.failure(fail) )
+        case .failure (let fail)        : machine.complete (.failure(fail) )
         case .success (let (tag, data)) : machine.router.route(tag: tag, data: data)
       }
     }
@@ -105,7 +120,7 @@ class EnumRequest : EnumeratorState {
       }
       else {
         // TODO: add fail state or regen
-        machine.completion? ( .failure(Fails.requestFail) )
+        machine.complete ( .failure(Fails.requestFail) )
       }
     }
     machine.muxdSocket.write(data: list)
@@ -140,14 +155,14 @@ class EnumLockdQuery : EnumeratorState {
     lockdSocket.dataHandler = { [self] result in
       //print(result)
       switch result {
-        case .failure(let fail): machine.completion? (.failure(fail) )
+        case .failure(let fail): machine.complete (.failure(fail) )
         case .success(let data): parser.process(data: data)
       }
     }
     parser.messageHandler = { [self] result in
       //print(result)
       switch result {
-        case .failure(let fail)       : machine.completion? (.failure(fail) )
+        case .failure(let fail)       : machine.complete (.failure(fail) )
         case .success(let (tag, data)): router.route(tag: tag, data: data)
       }
     }
@@ -202,7 +217,11 @@ class EnumDeliver : EnumeratorState {
       machine.candidates = []
       machine.candidate  = 0
     }
-    machine.completion? ( .success(machine.devices) )
+    
+    switch machine.option {
+      case .all : machine.complete ( .success(machine.devices) )
+      case .usb : machine.complete ( .success(machine.devices.filter {$0.device.properties.connectionType == "USB"} ) )
+    }
   }
 }
 
