@@ -34,6 +34,11 @@ USBmuxd has a dependency on [GCDSocket](https://github.com/SteveTrewick/GCDSocke
 ## Example - Enumerate Connected Devices 
 
 DeviceEnumerator also connects to lockdownd on connected devices and retrieves the device name.
+It tajes a single option parameter, either `.usb` if you only want to see USB connected devices or `.all` 
+if you want to see any that might be connected wirelesly (for example, XCode WiFi debugging uses this)
+
+If the enumerator retruns an empty dict you can check enumerator.error to see if there was an error 
+or just no devices detected.
 
 ```swift
 
@@ -43,24 +48,12 @@ import USBmuxd
 
 let enumerator = DeviceEnumerator()
 
-enumerator.enumerateDevices { result  in
+enumerator.enumerateDevices(.usb) { descriptors  in
 
-  switch result {
-
-    case .failure(let fail)        : main.async { print(fail) }
-
-    case .success(let descriptors) : main.async {
-
-      // show only USB connected devices
-      // avoiding any wireless sync type stubs that might show up
-      
-      for descriptor in descriptors {
-        if descriptor.device.properties.connectionType == "USB" {
-          print(descriptor)
-        }
-      }
-    }
+  for descriptor in descriptors {
+    print(descriptor)
   }
+      
 }
 RunLoop.current.run() // 4eva
 
@@ -68,6 +61,34 @@ RunLoop.current.run() // 4eva
 
 DeviceDescriptor(device: USBmuxd.Device(deviceID: 5, ... )), name: "iPhone SE")
 DeviceDescriptor(device: USBmuxd.Device(deviceID: 1, ... )), name: "iPhone")
+
+The returned structure is like this :
+
+public struct DeviceDescriptor {
+  public let device: Device
+  public let name  : String
+}
+
+public struct Device {
+  public let deviceID    : Int
+  public let messageType : String
+  public let properties  : DeviceProperties
+}
+
+public struct DeviceProperties {
+
+  public let connectionSpeed : Int?
+  public let connectionType  : String
+  public let deviceID        : Int
+  public let locationID      : Int?
+  public let productID       : Int?
+  public let serialNumber    : String
+  public let usbSerialNumber : String?
+  public let escapedFullServiceName : String?
+  public let interfaceIndex         : Int?
+  public let networkAddress         : Data?
+  public let udid                   : String?
+}
 
 */
 ```
